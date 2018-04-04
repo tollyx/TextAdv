@@ -6,7 +6,13 @@ using System.Threading.Tasks;
 
 namespace HelloWorld
 {
-    class Player
+    public class PlayerActor : Actor
     {
+        public string Name { get; private set; }
+
+        public PlayerActor(MapNode position, string name) : base(position)
+        {
+            Name = name;
+        }
     }
 }

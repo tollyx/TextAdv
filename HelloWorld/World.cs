@@ -9,30 +9,34 @@ namespace HelloWorld
     public class World
     {
         List<MapNode> nodes;
-        public MapNode CurrentNode { get; private set; }
+        public PlayerActor Player { get; private set; }
+        public List<Actor> Actors { get; private set; }
 
-        public World()
+        public World(string playername)
         {
-            nodes = new List<MapNode>();
-            nodes.Add(new MapNode("Castle Gates", "A large castle is in front of you. Its gates are open."));
-            nodes.Add(new MapNode("Castle Entrance", ""));
-            nodes.Add(new MapNode("Castle West Hall", ""));
-            nodes.Add(new MapNode("Castle East Hall", ""));
+            nodes = new List<MapNode>
+            {
+                new MapNode("Castle Gates", "A large castle is in front of you. Its gates are open."),
+                new MapNode("Castle Entrance", ""),
+                new MapNode("Castle West Hall", ""),
+                new MapNode("Castle East Hall", "")
+            };
             nodes[0].SetNeighbour(Direction.In, nodes[1], true);
             nodes[1].SetNeighbour(Direction.West, nodes[2], true);
             nodes[1].SetNeighbour(Direction.East, nodes[3], true);
-            CurrentNode = nodes[0];
+            Player = new PlayerActor(nodes[0], playername);
+            Actors = new List<Actor>
+            {
+                Player
+            };
         }
 
-        public bool Move(Direction dir)
+        public void Tick()
         {
-            MapNode node = CurrentNode.GetNeighbour(dir);
-            if (node != null)
+            foreach (var item in Actors)
             {
-                CurrentNode = node;
-                return true;
+                item.Tick();
             }
-            return false;
         }
     }
 }

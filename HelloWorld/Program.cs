@@ -20,39 +20,65 @@ namespace HelloWorld
             {
                 name = "Person";
             }
-            Console.WriteLine("Hello, {0}! Off we go!\r\n", name);
-            World world = new World();
+            Console.WriteLine("Hello, {0}! Off we go!\n", name);
+            GameLoop(new World(name));
+        }
+
+        static void GameLoop(World world)
+        {
             while (true)
             {
-                Console.WriteLine("You are here: {0}", world.CurrentNode.Name);
+                Console.WriteLine("You are here: {0}", world.Player.CurrentPosition.Name);
                 string dirs = "Paths:";
-                foreach (var item in world.CurrentNode.GetDirections())
+                foreach (var item in world.Player.CurrentPosition.GetDirections())
                 {
                     dirs += " " + item.ToString();
                 }
                 Console.WriteLine(dirs);
-                bool correctInput = false;
-                while (!correctInput)
+                ICommand cmd = PromptCommand();
+                if (cmd.Execute(world))
                 {
-                    string input = Prompt("");
+                    world.Tick();
                 }
+                Console.WriteLine();
             }
         }
 
         static public string Prompt(string question)
         {
             Console.WriteLine(question);
+            return Prompt();
+        }
+
+        static public string Prompt()
+        {
             Console.Write("> ");
             return Console.In.ReadLine();
         }
 
-        static readonly string[] YesWords = { "yes", "y", "true" };
-        static readonly string[] NoWords = { "no", "n", "false" };
+        static public ICommand PromptCommand()
+        {
+            while (true)
+            {
+                string input = Prompt();
+                ICommand cmd = Command.Parse(input);
+                if (cmd is NoneCommand)
+                {
+                    Console.WriteLine("Sorry, I didn't understand that.");
+                }
+                else
+                {
+                    return cmd;
+                }
+            }
+        }
 
+        static readonly string[] YesWords = { "yes", "y" };
+        static readonly string[] NoWords = { "no", "n" };
         static public bool PromptYesOrNo(string question)
         {
             string response = Prompt(question + " (yes/no)")
-                    .ToLower().Trim();
+                                .ToLower().Trim();
             while (true)
             {
                 if (YesWords.Contains(response))
