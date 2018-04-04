@@ -14,5 +14,10 @@ namespace TextAdv
         {
             Name = name;
         }
+
+        public override void Tick()
+        {
+            // TODO: do stuff
+        }
     }
 }

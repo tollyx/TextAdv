@@ -1,6 +1,6 @@
 ﻿namespace TextAdv
 {
-    public class Actor
+    public abstract class Actor
     {
         public event ActorMovedEvent ActorMoved;
 
@@ -10,10 +10,7 @@
             CurrentPosition = position;
         }
 
-        public void Tick()
-        {
-            // TODO: Do something every turn.
-        }
+        public abstract void Tick();
 
         public bool Move(Direction dir)
         {
@@ -36,7 +33,7 @@
 
     public delegate void ActorMovedEvent(object sender, ActorMovedEventArgs args);
 
-    public class ActorMovedEventArgs
+    public class ActorMovedEventArgs : System.EventArgs
     {
         public ActorMovedEventArgs(MapNode from, MapNode to, Direction dir)
         {
