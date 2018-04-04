@@ -18,7 +18,7 @@ namespace HelloWorld
             string name = Prompt("What is your name?");
             if (name.Length == 0)
             {
-                name = "Person";
+                name = "Anon";
             }
             Console.WriteLine("Hello, {0}! Off we go!\n", name);
             GameLoop(new World(name));
@@ -73,8 +73,8 @@ namespace HelloWorld
             }
         }
 
-        static readonly string[] YesWords = { "yes", "y" };
-        static readonly string[] NoWords = { "no", "n" };
+        static readonly string[] YesWords = { "yes", "y", "ja" };
+        static readonly string[] NoWords = { "no", "n", "nej" };
         static public bool PromptYesOrNo(string question)
         {
             string response = Prompt(question + " (yes/no)")

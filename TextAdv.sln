@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloWorld", "HelloWorld\HelloWorld.csproj", "{6773EF40-FA3C-4A9F-B4E7-79A9AD19952B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextAdv", "TextAdv\TextAdv.csproj", "{6773EF40-FA3C-4A9F-B4E7-79A9AD19952B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloWorld.Tests", "HelloWorld.Tests\HelloWorld.Tests.csproj", "{A5F1735A-822D-49A4-8A66-504F1244D5AA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextAdv.Tests", "TextAdv.Tests\TextAdv.Tests.csproj", "{A5F1735A-822D-49A4-8A66-504F1244D5AA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
