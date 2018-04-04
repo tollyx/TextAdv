@@ -1,4 +1,4 @@
-﻿namespace HelloWorld
+﻿namespace TextAdv
 {
     public class Actor
     {

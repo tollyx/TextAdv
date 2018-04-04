@@ -1,7 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using HelloWorld;
+using TextAdv;
 
-namespace HelloWorld.Tests
+namespace TextAdv.Tests
 {
     [TestClass]
     public class NodeTests
