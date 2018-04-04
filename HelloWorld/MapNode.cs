@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace HelloWorld
 {
-    class MapNode
+    public class MapNode
     {
-        public string Name { private set { Name = value; } get { return Name; } }
-        public string Description { private set { Description = value; } get { return Description; } }
+        public string Name { private set; get; }
+        public string Description { private set; get; }
         Dictionary<Direction, MapNode> neighbours = new Dictionary<Direction, MapNode>();
 
         public MapNode(string name, string description)
@@ -18,13 +18,42 @@ namespace HelloWorld
             this.Description = description;
         }
 
-        public void SetNeighbour(Direction direction, MapNode node, bool bothWays = false)
+        public MapNode SetNeighbour(Direction direction, MapNode node, bool bothWays = false)
         {
             neighbours[direction] = node;
             if (bothWays)
             {
                 node.SetNeighbour(direction.Opposite(), this, false);
             }
+            return this;
+        }
+
+        public MapNode RemoveNeighbour(Direction direction, bool bothWays = false)
+        {
+            if (neighbours.ContainsKey(direction))
+            {
+                MapNode node = neighbours[direction];
+                neighbours.Remove(direction);
+                if (bothWays)
+                {
+                    node.RemoveNeighbour(direction.Opposite(), false);
+                }
+            }
+            return this;
+        }
+
+        public MapNode GetNeighbour(Direction dir)
+        {
+            if (neighbours.ContainsKey(dir))
+            {
+                return neighbours[dir];
+            }
+            return null;
+        }
+
+        public IList<Direction> GetDirections()
+        {
+            return neighbours.Keys.ToList();
         }
     }
 }

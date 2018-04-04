@@ -8,8 +8,6 @@ namespace HelloWorld
 {
     class Program
     {
-        MapNode currentpos;
-
         static void Main(string[] args)
         {
             if (!PromptYesOrNo("Do you want to go on an adventure?"))
@@ -22,9 +20,23 @@ namespace HelloWorld
             {
                 name = "Person";
             }
-            Console.WriteLine("Hello, %s! Off we go!\r\n", name);
-
-            
+            Console.WriteLine("Hello, {0}! Off we go!\r\n", name);
+            World world = new World();
+            while (true)
+            {
+                Console.WriteLine("You are here: {0}", world.CurrentNode.Name);
+                string dirs = "Paths:";
+                foreach (var item in world.CurrentNode.GetDirections())
+                {
+                    dirs += " " + item.ToString();
+                }
+                Console.WriteLine(dirs);
+                bool correctInput = false;
+                while (!correctInput)
+                {
+                    string input = Prompt("");
+                }
+            }
         }
 
         static public string Prompt(string question)
