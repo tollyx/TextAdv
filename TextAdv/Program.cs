@@ -7,14 +7,16 @@ using System.Threading.Tasks;
 namespace TextAdv {
     class Program {
         static void Main(string[] args) {
-            if (!PromptYesOrNo("Do you want to go on an adventure?")) {
+            if (args.Length == 0 && !PromptYesOrNo("Do you want to go on an adventure?")) {
                 return;
             }
 
-            string name = Prompt("What is your name?");
+            string name = args.Length == 0 ? Prompt("What is your name?") : String.Join(" ", args);
+
             if (name.Length == 0) {
                 name = "Anon";
             }
+
             Console.WriteLine("Hello, {0}! Off we go!\n", name);
             GameLoop(new World(name));
         }

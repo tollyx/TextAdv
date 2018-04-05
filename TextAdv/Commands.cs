@@ -51,6 +51,7 @@ namespace TextAdv {
 
         static readonly (Direction, string[])[] DirectionStrings = {
             (Direction.North,       new string[]{ "north", "n" }),
+            (Direction.South,       new string[]{ "south", "s" }),
             (Direction.West,        new string[]{ "west", "w" }),
             (Direction.East,        new string[]{ "east", "e" }),
             (Direction.NorthWest,   new string[]{ "northwest", "nw" }),
