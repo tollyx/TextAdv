@@ -4,10 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TextAdv
-{
-    public enum Direction
-    {
+namespace TextAdv {
+    public enum Direction {
         North,
         South,
         East,
@@ -23,12 +21,9 @@ namespace TextAdv
         None,
     }
 
-    public static class Extensions
-    {
-        public static Direction Opposite(this Direction dir)
-        {
-            switch (dir)
-            {
+    public static class Extensions {
+        public static Direction Opposite(this Direction dir) {
+            switch (dir) {
                 case Direction.North: return Direction.South;
                 case Direction.South: return Direction.North;
                 case Direction.East: return Direction.West;

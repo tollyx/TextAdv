@@ -43,6 +43,7 @@
     <Compile Include="Actor.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="Direction.cs" />
+    <Compile Include="Item.cs" />
     <Compile Include="MapNode.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Program.cs" />
