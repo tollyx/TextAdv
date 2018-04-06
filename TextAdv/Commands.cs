@@ -19,15 +19,49 @@ namespace TextAdv {
 
         delegate ICommand CommandDelegate(string[] args, World world);
 
-        static readonly (string[], CommandDelegate)[] commands = {
-                (new string[]{ "pick", "take", "ta", "get", "grab" },   PickUpCommand.Parse),
-                (new string[]{ "dr", "drop" },                          DropCommand.Parse),
-                (new string[]{ "i", "inv", "inventory", "bag" },        InventoryCommand.Parse),
-                (new string[]{ "drink", "dri", "eat", "consume" },      ConsumeCommand.Parse),
-                (new string[]{ "we", "wear", "eq", "equip" },           EquipCommand.Parse),
-                //(new string[]{ "re", "remove", "uneq", "unequip" },     UnequipCommand.Parse),
-                (new string[]{ "l", "look", "here", "ls" },             LookCommand.Parse),
-            };
+        static readonly Dictionary<string, CommandDelegate> commands = new Dictionary<string, CommandDelegate>{
+            { "pick", PickUpCommand.Parse },
+            { "take", PickUpCommand.Parse },
+            { "ta", PickUpCommand.Parse },
+            { "get", PickUpCommand.Parse },
+            { "grab", PickUpCommand.Parse },
+
+            { "dr", DropCommand.Parse },
+            { "drop",  DropCommand.Parse },
+
+            { "i", InventoryCommand.Parse },
+            { "inv", InventoryCommand.Parse },
+            { "inventory", InventoryCommand.Parse },
+            { "bag", InventoryCommand.Parse },
+
+            { "drink", ConsumeCommand.Parse },
+            { "dri", ConsumeCommand.Parse },
+            { "eat", ConsumeCommand.Parse },
+            { "consume", ConsumeCommand.Parse },
+
+            { "we", EquipCommand.Parse },
+            { "wear", EquipCommand.Parse },
+            { "eq", EquipCommand.Parse },
+            { "equip", EquipCommand.Parse },
+
+            //{ "re", UnequipCommand.Parse },
+            //{ "remove", UnequipCommand.Parse },
+            //{ "uneq", UnequipCommand.Parse },
+            //{ "unequip", UnequipCommand.Parse },
+
+            //{ "op", OpenCommand.Parse },
+            //{ "open", OpenCommand.Parse },
+            //{ "cl", OpenCommand.Parse}, 
+            //{ "close", OpenCommand.Parse },
+
+            { "l", LookCommand.Parse },
+            { "look", LookCommand.Parse },
+            { "here", LookCommand.Parse },
+            { "ls", LookCommand.Parse },
+
+            { "clear", ClearCommand.Parse },
+
+        };
 
         /// <summary>
         /// Parses input from the user and spits out the proper command.
@@ -47,10 +81,8 @@ namespace TextAdv {
                 return move;
             }
 
-            foreach (var command in commands) {
-                if (command.Item1.Contains(cmd)) {
-                    return command.Item2(args, world);
-                }
+            if (commands.ContainsKey(cmd)) {
+                return commands[cmd](args, world);
             }
             return null;
         }
@@ -91,7 +123,7 @@ namespace TextAdv {
             if (world.Player.Move(Where)) {
                 return true;
             }
-            Console.WriteLine("You can't go that way.");
+            Program.Say("You can't go that way.");
             return false;
         }
     }
@@ -113,10 +145,10 @@ namespace TextAdv {
                 IItem item = world.Player.CurrentPosition.FindItem(name);
                 if (item != null) return new PickUpCommand(item);
 
-                Console.WriteLine($"You can't see any {name}");
+                Program.Say($"You can't see any {name}");
             }
             else {
-                Console.WriteLine("You need to specify what you want to pick up.");
+                Program.Say("You need to specify what you want to pick up.");
             }
             return null;
         }
@@ -151,10 +183,10 @@ namespace TextAdv {
                 IItem item = world.Player.FindItem(cmd);
                 if (item != null) return new DropCommand(item);
 
-                Console.WriteLine($"You don't have a {cmd}");
+                Program.Say($"You don't have a {cmd}");
             }
             else {
-                Console.WriteLine("You need to specify what you want to drop.");
+                Program.Say("You need to specify what you want to drop.");
             }
             return null;
         }
@@ -181,15 +213,15 @@ namespace TextAdv {
                         return new ConsumeCommand(item as IConsumable);
                     }
                     else {
-                        Console.WriteLine($"You can't eat the {item.Name}.");
+                        Program.Say($"You can't eat the {item.Name}.");
                     }
                 }
                 else {
-                    Console.WriteLine($"You don't have any {name}.");
+                    Program.Say($"You don't have any {name}.");
                 }
             }
             else {
-                Console.WriteLine("You need to specify what you want to pick up.");
+                Program.Say("You need to specify what you want to pick up.");
             }
             return null;
         }
@@ -216,15 +248,15 @@ namespace TextAdv {
                         return new EquipCommand(item as IEquippable);
                     }
                     else {
-                        Console.WriteLine($"You can't equip the {item.Name}.");
+                        Program.Say($"You can't equip the {item.Name}.");
                     }
                 }
                 else {
-                    Console.WriteLine($"You don't have any {name}.");
+                    Program.Say($"You don't have any {name}.");
                 }
             }
             else {
-                Console.WriteLine("You need to specify what you want to wear.");
+                Program.Say("You need to specify what you want to wear.");
             }
             return null;
         }
@@ -253,15 +285,15 @@ namespace TextAdv {
         }
 
         public static void Print(IActor act) {
-            Console.WriteLine("Inventory:");
+            Program.Say("Inventory:");
             foreach (var item in act.Inventory) {
-                Console.WriteLine(item.Name);
+                Program.Say(item.Name);
             }
         }
     }
 
     public class LookCommand : ICommand {
-        internal static ICommand Parse(string[] args, World world) {
+        public static ICommand Parse(string[] args, World world) {
             return new LookCommand();
         }
 
@@ -271,15 +303,27 @@ namespace TextAdv {
         }
 
         public static void Print(MapNode location) {
-            Console.WriteLine("You are here: {0}", location.Name);
-            Console.WriteLine(location.Description);
+            Program.Say($"You are here: {location.Name}");
+            Program.Say(location.Description);
 
             string items = "Items: " + string.Join(", ", location.Inventory);
-            Console.WriteLine(items);
+            Program.Say(items);
 
             string dirs = "Paths: " + string.Join(", ", location.GetDirections());
-            
-            Console.WriteLine(dirs);
+
+            Program.Say(dirs);
+        }
+    }
+
+    public class ClearCommand : ICommand {
+
+        public static ICommand Parse(string[] args, World world) {
+            return new ClearCommand();
+        }
+
+        public bool Execute(World world) {
+            Program.Clear();
+            return false;
         }
     }
 }

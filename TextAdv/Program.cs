@@ -14,7 +14,7 @@ namespace TextAdv {
             if (name.Length == 0) {
                 name = "Anon";
             }
-            Console.WriteLine($"Hello, {name}! Off we go!\n");
+            Say($"Hello, {name}! Off we go!\n");
 
             GameLoop(new World(name));
         }
@@ -34,8 +34,21 @@ namespace TextAdv {
                 if (PromptCommand(world).Execute(world)) {
                     world.Tick();
                 }
-                Console.WriteLine();
+                Spacer();
             }
+        }
+
+        static public void Say(string words, bool linebreak = true) {
+            if (linebreak) {
+                Console.WriteLine(words);
+            }
+            else {
+                Console.Write(words);
+            }
+        }
+
+        static public void Spacer() {
+            Say("");
         }
 
         /// <summary>
@@ -44,8 +57,7 @@ namespace TextAdv {
         /// <param name="question">The question to ask</param>
         /// <returns>The users answer</returns>
         static public string Ask(string question) {
-            Console.WriteLine(question);
-            Console.Write("$ ");
+            Say($"{question}\n$ ", false);
             return Console.ReadLine();
         }
 
@@ -54,7 +66,7 @@ namespace TextAdv {
         /// </summary>
         /// <returns>User input string</returns>
         static public string Prompt() {
-            Console.Write("> ");
+            Say("> ", false);
             return Console.ReadLine();
         }
 
@@ -65,7 +77,12 @@ namespace TextAdv {
         /// <returns>The parsed command. The command is guaranteed to not be null</returns>
         static public ICommand PromptCommand(World world) {
             while (true) {
-                ICommand cmd = Command.Parse(Prompt(), world);
+                // Not inlined for easy benchmarking of the parsing in the VS debugger.
+                // To benchmark: place a breakpoint at `Comman.Parse`, start the game and write a command.
+                // Step over once (decault key: F10)
+                // VS should show you how long it took to reach the next line. (includes debug overhead)
+                var str = Prompt();
+                ICommand cmd = Command.Parse(str, world);
                 if (cmd != null) {
                     return cmd;
                 }
@@ -106,6 +123,10 @@ namespace TextAdv {
                     response = Ask("Enter a number please.");
                 }
             }
+        }
+
+        public static void Clear() {
+            Console.Clear();
         }
     }
 }

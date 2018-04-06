@@ -77,37 +77,37 @@ namespace TextAdv {
 
             public virtual bool Drop(IActor dropper) {
                 if (_location == dropper) {
-                    Console.WriteLine($"You dropped the {Name} to the ground.");
+                    Program.Say($"You dropped the {Name} to the ground.");
                     dropper.Inventory.Remove(this);
                     dropper.CurrentPosition.Inventory.Add(this);
                     _location = dropper.CurrentPosition;
                     return true;
                 }
-                Console.WriteLine($"You can't drop a {Name} that you don't have.");
+                Program.Say($"You can't drop a {Name} that you don't have.");
                 return false;
             }
 
             public virtual bool Give(IActor giver, IActor reciever) {
                 if (giver == _location) {
-                    Console.WriteLine($"You gave {reciever.Name} the {Name}.");
+                    Program.Say($"You gave {reciever.Name} the {Name}.");
                     giver.Inventory.Remove(this);
                     reciever.Inventory.Add(this);
                     _location = reciever;
                     return true;
                 }
-                Console.WriteLine($"You can't give a {Name} that you don't have.");
+                Program.Say($"You can't give a {Name} that you don't have.");
                 return false;
             }
 
             public virtual bool PickUp(IActor picker) {
                 if (picker.CurrentPosition == _location) {
-                    Console.WriteLine($"You picked up the {Name} and put it in your inventory.");
+                    Program.Say($"You picked up the {Name} and put it in your inventory.");
                     picker.CurrentPosition.Inventory.Remove(this);
                     picker.Inventory.Add(this);
                     _location = picker;
                     return true;
                 }
-                Console.WriteLine($"You can't pick up a {Name} that you don't have.");
+                Program.Say($"You can't pick up a {Name} that you don't have.");
                 return false;
             }
 
@@ -150,13 +150,13 @@ namespace TextAdv {
                     }
                     else {
                         // Don't bother asking the user if all the items are identical
-                        if (items.All(i => i.Name == items[0].Name)) {
+                        if (items.Skip(1).All(i => i.Name == items[0].Name)) {
                             return items.First();
                         }
 
                         string str = "Please specify: ";
                         for (int i = 0; i < items.Count; i++) {
-                            str += $"{i + 1}.{items[i]}";
+                            str += $"{i + 1}: {items[i]}";
                             if (i < items.Count-1) {
                                 str += ", ";
                             }
@@ -180,12 +180,7 @@ namespace TextAdv {
             /// <param name="name">The name of the wanted item.</param>
             /// <returns>A list of items or null if none was found.</returns>
             public static IList<IItem> FindItems(this IInventory inv, string name) {
-                try {
-                    return inv.Inventory.Where((item) => item.Name.ToLower().Contains(name)).ToList();
-                }
-                catch (InvalidOperationException) {
-                    return null;
-                }
+                return inv.Inventory.Where((item) => item.Name.ToLower().Contains(name)).ToList();
             }
         }
     }
