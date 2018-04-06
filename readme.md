@@ -33,6 +33,9 @@ Non-complete list of ideas and things to do
 	* Other, static interractable entities
 		* [ ] Containers
 		* [ ] Buttons & Levers
+		* [ ] Traps
+			* Could be activated by interracting with other entities, could be 
+			activated by moving between map nodes.
 * Items
 	* [ ] An easy way to create new items
 		* Data-driven?
