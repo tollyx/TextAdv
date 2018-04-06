@@ -17,8 +17,8 @@ namespace TextAdv {
 
         public MapNode(string name, string description) {
             _inventory = new List<IItem>();
-            this.Name = name;
-            this.Description = description;
+            Name = name;
+            Description = description;
         }
 
         public MapNode SetNeighbour(Direction direction, MapNode node, bool bothWays = false) {

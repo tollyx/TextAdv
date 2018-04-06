@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 namespace TextAdv {
     class Program {
         static void Main(string[] args) {
-            if (args.Length == 0 && !PromptYesOrNo("Do you want to go on an adventure?")) {
+            if (args.Length == 0 && !AskYesOrNo("Do you want to go on an adventure?")) {
                 return;
             }
-            string name = args.Length == 0 ? Prompt("What is your name?") : String.Join(" ", args);
+            string name = args.Length == 0 ? Ask("What is your name?") : String.Join(" ", args);
             if (name.Length == 0) {
                 name = "Anon";
             }
@@ -28,11 +28,10 @@ namespace TextAdv {
             // so the player knows where he is.
             LookCommand.Print(world.Player.CurrentPosition);
             while (true) {
-                ICommand cmd = PromptCommand(world);
                 // The execute method tells us if we should update the world or not,
                 // since we don't want to update the world if the command was invalid
                 // or it was just inspecting something.
-                if (cmd.Execute(world)) {
+                if (PromptCommand(world).Execute(world)) {
                     world.Tick();
                 }
                 Console.WriteLine();
@@ -40,13 +39,14 @@ namespace TextAdv {
         }
 
         /// <summary>
-        /// Prompts the user for input by asking a question
+        /// Asks the user a question.
         /// </summary>
         /// <param name="question">The question to ask</param>
-        /// <returns>User input</returns>
-        static public string Prompt(string question) {
+        /// <returns>The users answer</returns>
+        static public string Ask(string question) {
             Console.WriteLine(question);
-            return Prompt();
+            Console.Write("$ ");
+            return Console.ReadLine();
         }
 
         /// <summary>
@@ -59,29 +59,28 @@ namespace TextAdv {
         }
 
         /// <summary>
-        /// Prompts the user for a valid command.
+        /// Prompts the user for input and retries until a valid command was entered
         /// </summary>
         /// <param name="world">The game world the command takes place in</param>
-        /// <returns>The parsed command</returns>
+        /// <returns>The parsed command. The command is guaranteed to not be null</returns>
         static public ICommand PromptCommand(World world) {
             while (true) {
-                string input = Prompt();
-                ICommand cmd = Command.Parse(input, world);
+                ICommand cmd = Command.Parse(Prompt(), world);
                 if (cmd != null) {
                     return cmd;
                 }
             }
         }
 
-        static readonly string[] YesWords = { "yes", "y", "ja" };
-        static readonly string[] NoWords = { "no", "n", "nej" };
+        static readonly string[] YesWords = { "yes", "y", "ja", "j", "true" };
+        static readonly string[] NoWords = { "no", "n", "nej", "false" };
         /// <summary>
-        /// Prompts the user a question yes/no question and will reprompt the user until it gets a yes or no.
+        /// Asks the user a yes/no question and will keep asking the user until we get a y/n answer.
         /// </summary>
         /// <param name="question">The question to ask.</param>
         /// <returns>yes or no</returns>
-        static public bool PromptYesOrNo(string question) {
-            string response = Prompt(question + " (yes/no)")
+        static public bool AskYesOrNo(string question) {
+            string response = Ask(question + " (yes/no)")
                                 .ToLower().Trim();
             while (true) {
                 if (YesWords.Contains(response)) {
@@ -91,7 +90,20 @@ namespace TextAdv {
                     return false;
                 }
                 else {
-                    response = Prompt("Yes or No?");
+                    response = Ask("Yes or No?");
+                }
+            }
+        }
+
+        static public int AskInt(string question) {
+            string response = Ask(question + " (number)")
+                                .ToLower().Trim();
+            while (true) {
+                if (Int32.TryParse(response, out int result)) {
+                    return result;
+                }
+                else {
+                    response = Ask("Enter a number please.");
                 }
             }
         }

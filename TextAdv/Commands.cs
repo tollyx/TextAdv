@@ -26,7 +26,7 @@ namespace TextAdv {
                 (new string[]{ "drink", "dri", "eat", "consume" },      ConsumeCommand.Parse),
                 (new string[]{ "we", "wear", "eq", "equip" },           EquipCommand.Parse),
                 //(new string[]{ "re", "remove", "uneq", "unequip" },     UnequipCommand.Parse),
-                (new string[]{ "l", "look", "here" },                   LookCommand.Parse),
+                (new string[]{ "l", "look", "here", "ls" },             LookCommand.Parse),
             };
 
         /// <summary>
@@ -36,8 +36,9 @@ namespace TextAdv {
         /// <param name="world">The world the command will be executed in.</param>
         /// <returns>The parsed command. Returns null if invalid input was entered.</returns>
         public static ICommand Parse(string input, World world) {
-            string[] args = input.ToLower().Split();
+            string[] args = input.ToLower().Split().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
             if (args.Length == 0) return null;
+
             string cmd = args[0];
             args = args.Skip(1).ToArray();
 
@@ -45,6 +46,7 @@ namespace TextAdv {
             if (move != null) {
                 return move;
             }
+
             foreach (var command in commands) {
                 if (command.Item1.Contains(cmd)) {
                     return command.Item2(args, world);
@@ -58,16 +60,16 @@ namespace TextAdv {
         public Direction Where { get; private set; }
 
         static readonly (Direction, string[])[] DirectionStrings = {
-            (Direction.North,       new string[]{ "north", "n" }),
-            (Direction.South,       new string[]{ "south", "s" }),
-            (Direction.West,        new string[]{ "west", "w" }),
-            (Direction.East,        new string[]{ "east", "e" }),
-            (Direction.NorthWest,   new string[]{ "northwest", "nw" }),
-            (Direction.NorthEast,   new string[]{ "northeast", "ne" }),
-            (Direction.SouthWest,   new string[]{ "southwest", "sw" }),
-            (Direction.SouthEast,   new string[]{ "southeast", "se" }),
-            (Direction.Up,          new string[]{ "up", "u" }),
-            (Direction.Down,        new string[]{ "down", "d" }),
+            (Direction.North,       new string[]{ "n", "north" }),
+            (Direction.South,       new string[]{ "s", "south" }),
+            (Direction.West,        new string[]{ "w", "west" }),
+            (Direction.East,        new string[]{ "e", "east" }),
+            (Direction.NorthWest,   new string[]{ "nw", "northwest" }),
+            (Direction.NorthEast,   new string[]{ "ne", "northeast" }),
+            (Direction.SouthWest,   new string[]{ "sw", "southwest" }),
+            (Direction.SouthEast,   new string[]{ "se", "southeast" }),
+            (Direction.Up,          new string[]{ "u", "up" }),
+            (Direction.Down,        new string[]{ "d", "down" }),
             (Direction.In,          new string[]{ "in" }),
             (Direction.Out,         new string[]{ "out" }),
         };
@@ -103,6 +105,9 @@ namespace TextAdv {
 
         public static ICommand Parse(string[] args, World world) {
             if (args.Length > 0) {
+                if (args.Length == 1 && args[0] == "all") {
+                    return new PickUpAllCommand();
+                }
                 string name = String.Join(" ", args);
 
                 IItem item = world.Player.CurrentPosition.FindItem(name);
@@ -118,6 +123,17 @@ namespace TextAdv {
 
         public bool Execute(World world) {
             return Item.PickUp(world.Player);
+        }
+    }
+
+    public class PickUpAllCommand : ICommand {
+        public bool Execute(World world) {
+            bool shouldPassTime = false;
+            var list = world.Player.CurrentPosition.Inventory.ToList();
+            foreach (var item in list) {
+                shouldPassTime = item.PickUp(world.Player) || shouldPassTime;
+            }
+            return shouldPassTime;
         }
     }
 

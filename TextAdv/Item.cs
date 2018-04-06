@@ -137,18 +137,40 @@ namespace TextAdv {
 
         public static class Extensions {
             /// <summary>
-            /// Finds an item in an inventory.
+            /// Finds an item in an inventory. If there are multiple matches, it asks the user to specify which one.
             /// </summary>
             /// <param name="inv">The inventory to search</param>
             /// <param name="name">The name of the item. Doesn't have to be exact, but it is expected to be all-lowercase</param>
             /// <returns>An item or null if none was found.</returns>
             public static IItem FindItem(this IInventory inv, string name) {
-                try {
-                    return inv.Inventory.First((item) => item.Name.ToLower().Contains(name));
+                var items = inv.FindItems(name);
+                if (items.Count > 0) {
+                    if (items.Count == 1) {
+                        return items.First();
+                    }
+                    else {
+                        // Don't bother asking the user if all the items are identical
+                        if (items.All(i => i.Name == items[0].Name)) {
+                            return items.First();
+                        }
+
+                        string str = "Please specify: ";
+                        for (int i = 0; i < items.Count; i++) {
+                            str += $"{i + 1}.{items[i]}";
+                            if (i < items.Count-1) {
+                                str += ", ";
+                            }
+                        }
+                        int sel = Program.AskInt(str)-1;
+                        if (sel >= 0 && sel < items.Count) {
+                            return items[sel];
+                        }
+                        else {
+                            return null;
+                        }
+                    }
                 }
-                catch (InvalidOperationException) {
-                    return null;
-                }
+                return null;
             }
 
             /// <summary>
@@ -157,9 +179,9 @@ namespace TextAdv {
             /// <param name="inv">The inventory to search</param>
             /// <param name="name">The name of the wanted item.</param>
             /// <returns>A list of items or null if none was found.</returns>
-            public static IEnumerable<IItem> FindItems(this IInventory inv, string name) {
+            public static IList<IItem> FindItems(this IInventory inv, string name) {
                 try {
-                    return inv.Inventory.Where((item) => item.Name.ToLower().Contains(name));
+                    return inv.Inventory.Where((item) => item.Name.ToLower().Contains(name)).ToList();
                 }
                 catch (InvalidOperationException) {
                     return null;

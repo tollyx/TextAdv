@@ -36,7 +36,7 @@ namespace TextAdv {
                 case Direction.NorthWest: return Direction.SouthEast;
                 case Direction.SouthEast: return Direction.NorthWest;
                 case Direction.SouthWest: return Direction.NorthEast;
-                default: return Direction.None;
+                default: case Direction.None: return Direction.None;
             }
         }
     }
