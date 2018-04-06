@@ -98,5 +98,15 @@ namespace TextAdv {
                 throw new NotImplementedException();
             }
         }
+
+        public static class Extensions {
+            public static IItem FindItem(this IInventory inv, string name) {
+                return inv.Inventory.First((item) => item.Name.Contains(name));
+            }
+
+            public static IEnumerable<IItem> FindItems(this IInventory inv, string name) {
+                return inv.Inventory.Where((item) => item.Name.ToLower().Contains(name));
+            }
+        }
     }
 }

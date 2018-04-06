@@ -101,14 +101,17 @@ namespace TextAdv {
         }
 
         public static ICommand Parse(string[] args, World world) {
-            string name = String.Join(" ", args);
+            if (args.Length > 0) {
+                string name = String.Join(" ", args);
 
-            foreach (var item in world.Player.CurrentPosition.GetItems()) {
-                if (item.Name.ToLower().Contains(name)) {
-                    return new PickUpCommand(item);
-                }
+                IItem item = world.Player.CurrentPosition.FindItem(name);
+                if (item != null) return new PickUpCommand(item);
+
+                Console.WriteLine($"You can't see any {name}");
             }
-            Console.WriteLine($"You can't see any {name}");
+            else {
+                Console.WriteLine("You need to specify what you want to pick up.");
+            }
             return null;
         }
 
@@ -128,11 +131,9 @@ namespace TextAdv {
             if (args.Length > 0) {
                 string cmd = String.Join(" ", args);
 
-                foreach (var item in world.Player.Inventory) {
-                    if (item.Name.ToLower().Contains(cmd)) {
-                        return new DropCommand(item);
-                    }
-                }
+                IItem item = world.Player.FindItem(cmd);
+                if (item != null) return new DropCommand(item);
+
                 Console.WriteLine($"You don't have a {cmd}");
             }
             else {
@@ -149,6 +150,31 @@ namespace TextAdv {
     public class ConsumeCommand : ICommand {
         public IConsumable Item { get; private set; }
 
+        public ConsumeCommand(IConsumable item) {
+            Item = item;
+        }
+
+        public static ICommand Parse(string[] args, World world) {
+            if (args.Length > 0) {
+                string name = String.Join(" ", args);
+
+                IItem item = world.Player.CurrentPosition.FindItem(name);
+                if (item != null) {
+                    if (item is IConsumable) {
+                        return new ConsumeCommand(item as IConsumable);
+                    }
+                    else {
+                        Console.WriteLine($"You can't eat the {item.Name}.");
+                    }
+                }
+                Console.WriteLine($"You can't see any {name}.");
+            }
+            else {
+                Console.WriteLine("You need to specify what you want to pick up.");
+            }
+            return null;
+        }
+
         public bool Execute(World world) {
             return Item.Consume(world.Player);
         }
@@ -156,6 +182,31 @@ namespace TextAdv {
 
     public class EquipCommand : ICommand {
         public IEquipment Item { get; private set; }
+
+        public EquipCommand(IEquipment item) {
+            Item = item;
+        }
+
+        public static ICommand Parse(string[] args, World world) {
+            if (args.Length > 0) {
+                string name = String.Join(" ", args);
+
+                IItem item = world.Player.CurrentPosition.FindItem(name);
+                if (item != null) {
+                    if (item is IEquipment) {
+                        return new EquipCommand(item as IEquipment);
+                    }
+                    else {
+                        Console.WriteLine($"You can't equip the {item.Name}.");
+                    }
+                }
+                Console.WriteLine($"You can't see any {name}.");
+            }
+            else {
+                Console.WriteLine("You need to specify what you want to wear.");
+            }
+            return null;
+        }
 
         public bool Execute(World world) {
             return Item.Equip(world.Player);
@@ -180,7 +231,7 @@ namespace TextAdv {
             foreach (var item in world.Player.Inventory) {
                 Console.WriteLine(item.Name);
             }
-            return true;
+            return false;
         }
     }
 }
