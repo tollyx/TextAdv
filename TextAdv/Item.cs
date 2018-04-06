@@ -19,10 +19,16 @@ namespace TextAdv {
 
         }
 
+        /// <summary>
+        /// An object with an inventory. Actors, Map nodes, Chests etc.
+        /// </summary>
         public interface IInventory {
             IList<IItem> Inventory { get; }
         }
 
+        /// <summary>
+        /// An item that can be consumed.
+        /// </summary>
         public interface IConsumable : IItem {
             bool Consume(Actor consumer);
         }
@@ -40,6 +46,9 @@ namespace TextAdv {
             Ankles,
         }
 
+        /// <summary>
+        /// An item that can equipped
+        /// </summary>
         public interface IEquipment : IItem {
             EquipSlot Slot { get; }
             bool Equip(Actor wearer);

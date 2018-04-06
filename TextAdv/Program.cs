@@ -17,10 +17,14 @@ namespace TextAdv {
                 name = "Anon";
             }
 
-            Console.WriteLine("Hello, {0}! Off we go!\n", name);
+            Console.WriteLine($"Hello, {name}! Off we go!\n");
             GameLoop(new World(name));
         }
 
+        /// <summary>
+        /// Starts and runs the game until the user ends the game.
+        /// </summary>
+        /// <param name="world">The world to run.</param>
         static void GameLoop(World world) {
             while (true) {
                 Console.WriteLine("You are here: {0}", world.Player.CurrentPosition.Name);
@@ -45,16 +49,30 @@ namespace TextAdv {
             }
         }
 
+        /// <summary>
+        /// Prompts the user for input by asking a question
+        /// </summary>
+        /// <param name="question">The question to ask</param>
+        /// <returns>User input</returns>
         static public string Prompt(string question) {
             Console.WriteLine(question);
             return Prompt();
         }
 
+        /// <summary>
+        /// Prompts the user for input
+        /// </summary>
+        /// <returns>User input string</returns>
         static public string Prompt() {
             Console.Write("> ");
             return Console.In.ReadLine();
         }
 
+        /// <summary>
+        /// Prompts the user for a valid command.
+        /// </summary>
+        /// <param name="world">The game world the command takes place in</param>
+        /// <returns>The parsed command</returns>
         static public ICommand PromptCommand(World world) {
             while (true) {
                 string input = Prompt();
@@ -67,6 +85,11 @@ namespace TextAdv {
 
         static readonly string[] YesWords = { "yes", "y", "ja" };
         static readonly string[] NoWords = { "no", "n", "nej" };
+        /// <summary>
+        /// Prompts the user a question yes/no question and will reprompt the user until it gets a yes or no.
+        /// </summary>
+        /// <param name="question">The question to ask.</param>
+        /// <returns>yes or no</returns>
         static public bool PromptYesOrNo(string question) {
             string response = Prompt(question + " (yes/no)")
                                 .ToLower().Trim();
