@@ -19,48 +19,18 @@ namespace TextAdv {
 
         delegate ICommand CommandDelegate(string[] args, World world);
 
-        static readonly Dictionary<string, CommandDelegate> commands = new Dictionary<string, CommandDelegate>{
-            { "pick", PickUpCommand.Parse },
-            { "take", PickUpCommand.Parse },
-            { "ta", PickUpCommand.Parse },
-            { "get", PickUpCommand.Parse },
-            { "grab", PickUpCommand.Parse },
-
-            { "dr", DropCommand.Parse },
-            { "drop",  DropCommand.Parse },
-
-            { "i", InventoryCommand.Parse },
-            { "inv", InventoryCommand.Parse },
-            { "inventory", InventoryCommand.Parse },
-            { "bag", InventoryCommand.Parse },
-
-            { "drink", ConsumeCommand.Parse },
-            { "dri", ConsumeCommand.Parse },
-            { "eat", ConsumeCommand.Parse },
-            { "consume", ConsumeCommand.Parse },
-
-            { "we", EquipCommand.Parse },
-            { "wear", EquipCommand.Parse },
-            { "eq", EquipCommand.Parse },
-            { "equip", EquipCommand.Parse },
-
-            //{ "re", UnequipCommand.Parse },
-            //{ "remove", UnequipCommand.Parse },
-            //{ "uneq", UnequipCommand.Parse },
-            //{ "unequip", UnequipCommand.Parse },
-
-            //{ "op", OpenCommand.Parse },
-            //{ "open", OpenCommand.Parse },
-            //{ "cl", OpenCommand.Parse}, 
-            //{ "close", OpenCommand.Parse },
-
-            { "l", LookCommand.Parse },
-            { "look", LookCommand.Parse },
-            { "here", LookCommand.Parse },
-            { "ls", LookCommand.Parse },
-
-            { "clear", ClearCommand.Parse },
-
+        // Iterating over this is apparently faster than a dict lookup?!
+        // Yes, I benchmarked it myself, but it was probably an unreliable result.
+        static readonly (string[], CommandDelegate)[] commands = {
+            (new string[]{ "pick", "take", "ta", "get", "grab" }, PickUpCommand.Parse),
+            (new string[]{ "dr", "drop" },  DropCommand.Parse),
+            (new string[]{ "i", "inv", "inventory", "bag" }, InventoryCommand.Parse ),
+            (new string[]{ "dri", "drink", "eat", "consume" }, ConsumeCommand.Parse ),
+            (new string[]{ "we", "wear", "eq", "equip" }, EquipCommand.Parse ),
+            //(new string[]{ "re", "remove", "uneq", "unequip" }, UnequipCommand.Parse),
+            //(new string[]{ "op", "open", "cl", "close" }, OpenCommand.Parse ),
+            (new string[]{ "l", "look", "here", "ls" }, LookCommand.Parse ),
+            (new string[]{ "clear" }, ClearCommand.Parse ),
         };
 
         /// <summary>
@@ -81,8 +51,10 @@ namespace TextAdv {
                 return move;
             }
 
-            if (commands.ContainsKey(cmd)) {
-                return commands[cmd](args, world);
+            foreach (var item in commands) {
+                if (item.Item1.Contains(cmd)) {
+                    return item.Item2(args, world);
+                }
             }
             return null;
         }
@@ -91,25 +63,25 @@ namespace TextAdv {
     public class MoveCommand : ICommand {
         public Direction Where { get; private set; }
 
-        static readonly (Direction, string[])[] DirectionStrings = {
-            (Direction.North,       new string[]{ "n", "north" }),
-            (Direction.South,       new string[]{ "s", "south" }),
-            (Direction.West,        new string[]{ "w", "west" }),
-            (Direction.East,        new string[]{ "e", "east" }),
-            (Direction.NorthWest,   new string[]{ "nw", "northwest" }),
-            (Direction.NorthEast,   new string[]{ "ne", "northeast" }),
-            (Direction.SouthWest,   new string[]{ "sw", "southwest" }),
-            (Direction.SouthEast,   new string[]{ "se", "southeast" }),
-            (Direction.Up,          new string[]{ "u", "up" }),
-            (Direction.Down,        new string[]{ "d", "down" }),
-            (Direction.In,          new string[]{ "in" }),
-            (Direction.Out,         new string[]{ "out" }),
+        static readonly (string[], Direction)[] DirectionStrings = {
+            (new string[]{ "n", "north" }, Direction.North),
+            (new string[]{ "s", "south" }, Direction.South),
+            (new string[]{ "w", "west" }, Direction.West),
+            (new string[]{ "e", "east" }, Direction.East),
+            (new string[]{ "nw", "northwest" }, Direction.NorthWest),
+            (new string[]{ "ne", "northeast" }, Direction.NorthEast),
+            (new string[]{ "sw", "southwest" }, Direction.SouthWest),
+            (new string[]{ "se", "southeast" }, Direction.SouthEast),
+            (new string[]{ "u", "up" }, Direction.Up),
+            (new string[]{ "d", "down" }, Direction.Down),
+            (new string[]{ "in" }, Direction.In),
+            (new string[]{ "out" }, Direction.Out),
         };
 
         public static MoveCommand Parse(string input) {
             foreach (var item in DirectionStrings) {
-                if (item.Item2.Contains(input)) {
-                    return new MoveCommand(item.Item1);
+                if (item.Item1.Contains(input)) {
+                    return new MoveCommand(item.Item2);
                 }
             }
             return null;

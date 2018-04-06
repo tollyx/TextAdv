@@ -21,6 +21,7 @@ Non-complete list of ideas and things to do
 * [ ] Core
 	* [x] Movement
 	* [x] Command parsing
+		* [ ] Figure out an easier way to add sub-commands (eg. take all)
 	* [ ] Audio
 		* `Console.Beep()` Or maybe something else?
 * [ ] Commands

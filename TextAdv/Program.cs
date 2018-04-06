@@ -12,7 +12,7 @@ namespace TextAdv {
             }
             string name = args.Length == 0 ? Ask("What is your name?") : String.Join(" ", args);
             if (name.Length == 0) {
-                name = "Anon";
+                name = "Steve";
             }
             Say($"Hello, {name}! Off we go!\n");
 
@@ -62,27 +62,14 @@ namespace TextAdv {
         }
 
         /// <summary>
-        /// Prompts the user for input
-        /// </summary>
-        /// <returns>User input string</returns>
-        static public string Prompt() {
-            Say("> ", false);
-            return Console.ReadLine();
-        }
-
-        /// <summary>
         /// Prompts the user for input and retries until a valid command was entered
         /// </summary>
         /// <param name="world">The game world the command takes place in</param>
         /// <returns>The parsed command. The command is guaranteed to not be null</returns>
         static public ICommand PromptCommand(World world) {
             while (true) {
-                // Not inlined for easy benchmarking of the parsing in the VS debugger.
-                // To benchmark: place a breakpoint at `Comman.Parse`, start the game and write a command.
-                // Step over once (decault key: F10)
-                // VS should show you how long it took to reach the next line. (includes debug overhead)
-                var str = Prompt();
-                ICommand cmd = Command.Parse(str, world);
+                Say("> ", false);
+                ICommand cmd = Command.Parse(Console.ReadLine(), world);
                 if (cmd != null) {
                     return cmd;
                 }
