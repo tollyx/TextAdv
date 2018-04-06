@@ -18,7 +18,7 @@ namespace TextAdv {
 
         public abstract void Tick();
 
-        public bool Move(Direction dir) {
+        public virtual bool Move(Direction dir) {
             MapNode node = CurrentPosition.GetNeighbour(dir);
             if (node != null) {
                 ActorMoved?.Invoke(this, new ActorMovedEventArgs(CurrentPosition, node, dir));

@@ -13,6 +13,16 @@ namespace TextAdv {
             Name = name;
         }
 
+        public override bool Move(Direction dir) {
+            if (base.Move(dir)) {
+                // We successfully moved! 
+                // Let's print our new location.
+                LookCommand.Print(CurrentPosition);
+                return true;
+            }
+            return false;
+        }
+
         public override void Tick() {
             // TODO: do stuff
         }

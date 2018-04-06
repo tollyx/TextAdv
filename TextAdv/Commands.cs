@@ -26,6 +26,7 @@ namespace TextAdv {
                 (new string[]{ "drink", "dri", "eat", "consume" },      ConsumeCommand.Parse),
                 (new string[]{ "we", "wear", "eq", "equip" },           EquipCommand.Parse),
                 //(new string[]{ "re", "remove", "uneq", "unequip" },     UnequipCommand.Parse),
+                (new string[]{ "l", "look", "here" },                   LookCommand.Parse),
             };
 
         /// <summary>
@@ -231,11 +232,42 @@ namespace TextAdv {
         }
 
         public bool Execute(World world) {
+            Print(world.Player);
+            return false;
+        }
+
+        public static void Print(Actor act) {
             Console.WriteLine("Inventory:");
-            foreach (var item in world.Player.Inventory) {
+            foreach (var item in act.Inventory) {
                 Console.WriteLine(item.Name);
             }
+        }
+    }
+
+    public class LookCommand : ICommand {
+        internal static ICommand Parse(string[] args, World world) {
+            return new LookCommand();
+        }
+
+        public bool Execute(World world) {
+            Print(world.Player.CurrentPosition);
             return false;
+        }
+
+        public static void Print(MapNode location) {
+            Console.WriteLine("You are here: {0}", location.Name);
+
+            string items = "Items:";
+            foreach (var item in location.Inventory) {
+                items += " " + item.Name;
+            }
+            Console.WriteLine(items);
+
+            string dirs = "Paths:";
+            foreach (var item in location.GetDirections()) {
+                dirs += " " + item.ToString();
+            }
+            Console.WriteLine(dirs);
         }
     }
 }

@@ -26,21 +26,10 @@ namespace TextAdv {
         /// </summary>
         /// <param name="world">The world to run.</param>
         static void GameLoop(World world) {
+            // We want to print the current location when the game starts, 
+            // so the player knows where he is.
+            LookCommand.Print(world.Player.CurrentPosition);
             while (true) {
-                Console.WriteLine("You are here: {0}", world.Player.CurrentPosition.Name);
-
-                string items = "Items:";
-                foreach (var item in world.Player.CurrentPosition.Inventory) {
-                    items += " " + item.Name;
-                }
-                Console.WriteLine(items);
-
-                string dirs = "Paths:";
-                foreach (var item in world.Player.CurrentPosition.GetDirections()) {
-                    dirs += " " + item.ToString();
-                }
-                Console.WriteLine(dirs);
-
                 ICommand cmd = PromptCommand(world);
                 if (cmd.Execute(world)) {
                     world.Tick();
