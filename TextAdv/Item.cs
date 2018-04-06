@@ -101,11 +101,21 @@ namespace TextAdv {
 
         public static class Extensions {
             public static IItem FindItem(this IInventory inv, string name) {
-                return inv.Inventory.First((item) => item.Name.Contains(name));
+                try {
+                    return inv.Inventory.First((item) => item.Name.ToLower().Contains(name));
+                }
+                catch (InvalidOperationException) {
+                    return null;
+                }
             }
 
             public static IEnumerable<IItem> FindItems(this IInventory inv, string name) {
-                return inv.Inventory.Where((item) => item.Name.ToLower().Contains(name));
+                try {
+                    return inv.Inventory.Where((item) => item.Name.ToLower().Contains(name));
+                }
+                catch (InvalidOperationException) {
+                    return null;
+                }
             }
         }
     }

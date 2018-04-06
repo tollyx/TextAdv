@@ -65,7 +65,7 @@ namespace TextAdv {
         /// <returns>User input string</returns>
         static public string Prompt() {
             Console.Write("> ");
-            return Console.In.ReadLine();
+            return Console.ReadLine();
         }
 
         /// <summary>

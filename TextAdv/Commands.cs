@@ -23,8 +23,8 @@ namespace TextAdv {
                 (new string[]{ "pick", "take", "ta", "get", "grab" },   PickUpCommand.Parse),
                 (new string[]{ "dr", "drop" },                          DropCommand.Parse),
                 (new string[]{ "i", "inv", "inventory", "bag" },        InventoryCommand.Parse),
-                //(new string[]{ "drink", "dri", "eat", "consume" },      ConsumeCommand.Parse),
-                //(new string[]{ "we", "wear", "eq", "equip" },           EquipCommand.Parse),
+                (new string[]{ "drink", "dri", "eat", "consume" },      ConsumeCommand.Parse),
+                (new string[]{ "we", "wear", "eq", "equip" },           EquipCommand.Parse),
                 //(new string[]{ "re", "remove", "uneq", "unequip" },     UnequipCommand.Parse),
             };
 
@@ -158,7 +158,7 @@ namespace TextAdv {
             if (args.Length > 0) {
                 string name = String.Join(" ", args);
 
-                IItem item = world.Player.CurrentPosition.FindItem(name);
+                IItem item = world.Player.FindItem(name);
                 if (item != null) {
                     if (item is IConsumable) {
                         return new ConsumeCommand(item as IConsumable);
@@ -167,7 +167,9 @@ namespace TextAdv {
                         Console.WriteLine($"You can't eat the {item.Name}.");
                     }
                 }
-                Console.WriteLine($"You can't see any {name}.");
+                else {
+                    Console.WriteLine($"You don't have any {name}.");
+                }
             }
             else {
                 Console.WriteLine("You need to specify what you want to pick up.");
@@ -191,7 +193,7 @@ namespace TextAdv {
             if (args.Length > 0) {
                 string name = String.Join(" ", args);
 
-                IItem item = world.Player.CurrentPosition.FindItem(name);
+                IItem item = world.Player.FindItem(name);
                 if (item != null) {
                     if (item is IEquipment) {
                         return new EquipCommand(item as IEquipment);
@@ -200,7 +202,9 @@ namespace TextAdv {
                         Console.WriteLine($"You can't equip the {item.Name}.");
                     }
                 }
-                Console.WriteLine($"You can't see any {name}.");
+                else {
+                    Console.WriteLine($"You don't have any {name}.");
+                }
             }
             else {
                 Console.WriteLine("You need to specify what you want to wear.");
