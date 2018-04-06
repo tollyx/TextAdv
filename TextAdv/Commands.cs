@@ -184,9 +184,9 @@ namespace TextAdv {
     }
 
     public class EquipCommand : ICommand {
-        public IEquipment Item { get; private set; }
+        public IEquippable Item { get; private set; }
 
-        public EquipCommand(IEquipment item) {
+        public EquipCommand(IEquippable item) {
             Item = item;
         }
 
@@ -196,8 +196,8 @@ namespace TextAdv {
 
                 IItem item = world.Player.FindItem(name);
                 if (item != null) {
-                    if (item is IEquipment) {
-                        return new EquipCommand(item as IEquipment);
+                    if (item is IEquippable) {
+                        return new EquipCommand(item as IEquippable);
                     }
                     else {
                         Console.WriteLine($"You can't equip the {item.Name}.");
@@ -219,7 +219,7 @@ namespace TextAdv {
     }
 
     public class UnequipCommand : ICommand {
-        public IEquipment Item { get; private set; }
+        public IEquippable Item { get; private set; }
 
         public bool Execute(World world) {
             return Item.Unequip(world.Player);
@@ -236,7 +236,7 @@ namespace TextAdv {
             return false;
         }
 
-        public static void Print(Actor act) {
+        public static void Print(IActor act) {
             Console.WriteLine("Inventory:");
             foreach (var item in act.Inventory) {
                 Console.WriteLine(item.Name);
@@ -256,17 +256,13 @@ namespace TextAdv {
 
         public static void Print(MapNode location) {
             Console.WriteLine("You are here: {0}", location.Name);
+            Console.WriteLine(location.Description);
 
-            string items = "Items:";
-            foreach (var item in location.Inventory) {
-                items += " " + item.Name;
-            }
+            string items = "Items: " + string.Join(", ", location.Inventory);
             Console.WriteLine(items);
 
-            string dirs = "Paths:";
-            foreach (var item in location.GetDirections()) {
-                dirs += " " + item.ToString();
-            }
+            string dirs = "Paths: " + string.Join(", ", location.GetDirections());
+            
             Console.WriteLine(dirs);
         }
     }

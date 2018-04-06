@@ -2,16 +2,27 @@
 using TextAdv.Items;
 
 namespace TextAdv {
-    public abstract class Actor : IInventory {
+    public interface IActor : IInventory {
+        string Name { get; }
+        MapNode CurrentPosition { get; }
+        void Tick();
+        event ActorMovedEvent ActorMoved;
+        bool Move(Direction dir);
+        void SetLocation(MapNode node);
+    }
+
+    public abstract class BaseActor : IActor {
         public event ActorMovedEvent ActorMoved;
 
-        public MapNode CurrentPosition { get; private set; }
+        public MapNode CurrentPosition { get; protected set; }
 
         public IList<IItem> Inventory => _inventory;
 
+        public string Name { get; protected set; }
+
         List<IItem> _inventory;
 
-        public Actor(MapNode position) {
+        public BaseActor(MapNode position) {
             _inventory = new List<IItem>();
             CurrentPosition = position;
         }

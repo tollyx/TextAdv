@@ -8,7 +8,7 @@ namespace TextAdv {
     public class World {
         List<MapNode> nodes;
         public PlayerActor Player { get; private set; }
-        public List<Actor> Actors { get; private set; }
+        public List<BaseActor> Actors { get; private set; }
 
         public World(string playername) {
             nodes = new List<MapNode>
@@ -23,7 +23,7 @@ namespace TextAdv {
             nodes[1].SetNeighbour(Direction.West, nodes[2], true);
             nodes[1].SetNeighbour(Direction.East, nodes[3], true);
             Player = new PlayerActor(nodes[0], playername);
-            Actors = new List<Actor>
+            Actors = new List<BaseActor>
             {
                 Player
             };

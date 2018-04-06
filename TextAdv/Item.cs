@@ -11,11 +11,16 @@ namespace TextAdv {
             string Description { get; }
             int Value { get; }
             IInventory Location { get; }
-            bool Use(Actor user);
-            bool PickUp(Actor picker);
-            bool Drop(Actor dropper);
-            bool Throw(Actor thrower, Actor target);
-            bool Give(Actor giver, Actor reciever);
+            bool Use(IActor user);
+            bool PickUp(IActor picker);
+            /// <summary>
+            /// Drops the item.
+            /// </summary>
+            /// <param name="dropper">The actor which is doing the dropping.</param>
+            /// <returns>Wether the attempt was successful or not.</returns>
+            bool Drop(IActor dropper);
+            bool Throw(IActor thrower, IActor target);
+            bool Give(IActor giver, IActor reciever);
 
         }
 
@@ -30,7 +35,7 @@ namespace TextAdv {
         /// An item that can be consumed.
         /// </summary>
         public interface IConsumable : IItem {
-            bool Consume(Actor consumer);
+            bool Consume(BaseActor consumer);
         }
 
         public enum EquipSlot {
@@ -49,57 +54,94 @@ namespace TextAdv {
         /// <summary>
         /// An item that can equipped
         /// </summary>
-        public interface IEquipment : IItem {
+        public interface IEquippable : IItem {
             EquipSlot Slot { get; }
-            bool Equip(Actor wearer);
-            bool Unequip(Actor wearer);
+            bool Equip(BaseActor wearer);
+            bool Unequip(BaseActor wearer);
         }
 
-        public class Stone : IItem {
-            public string Name => "Stone";
+        public abstract class BaseItem : IItem {
+            public abstract string Name { get; }
 
-            public string Description => "A grey, rock-hard stone.";
+            public abstract string Description { get; }
 
-            public int Value => 0;
+            public abstract int Value { get; }
 
             public IInventory Location => _location;
 
             IInventory _location;
 
-            public Stone(IInventory location) {
+            public BaseItem(IInventory location) {
                 _location = location;
             }
 
-            public bool Drop(Actor dropper) {
-                dropper.Inventory.Remove(this);
-                dropper.CurrentPosition.Inventory.Add(this);
-                _location = dropper.CurrentPosition;
-                return true;
+            public virtual bool Drop(IActor dropper) {
+                if (_location == dropper) {
+                    Console.WriteLine($"You dropped the {Name} to the ground.");
+                    dropper.Inventory.Remove(this);
+                    dropper.CurrentPosition.Inventory.Add(this);
+                    _location = dropper.CurrentPosition;
+                    return true;
+                }
+                Console.WriteLine($"You can't drop a {Name} that you don't have.");
+                return false;
             }
 
-            public bool Give(Actor giver, Actor reciever) {
-                giver.Inventory.Remove(this);
-                reciever.Inventory.Add(this);
-                _location = reciever;
-                return true;
+            public virtual bool Give(IActor giver, IActor reciever) {
+                if (giver == _location) {
+                    Console.WriteLine($"You gave {reciever.Name} the {Name}.");
+                    giver.Inventory.Remove(this);
+                    reciever.Inventory.Add(this);
+                    _location = reciever;
+                    return true;
+                }
+                Console.WriteLine($"You can't give a {Name} that you don't have.");
+                return false;
             }
 
-            public bool PickUp(Actor picker) {
-                picker.CurrentPosition.Inventory.Remove(this);
-                picker.Inventory.Add(this);
-                return true;
+            public virtual bool PickUp(IActor picker) {
+                if (picker.CurrentPosition == _location) {
+                    Console.WriteLine($"You picked up the {Name} and put it in your inventory.");
+                    picker.CurrentPosition.Inventory.Remove(this);
+                    picker.Inventory.Add(this);
+                    _location = picker;
+                    return true;
+                }
+                Console.WriteLine($"You can't pick up a {Name} that you don't have.");
+                return false;
             }
 
-            public bool Throw(Actor thrower, Actor target) {
+            public virtual bool Throw(IActor thrower, IActor target) {
                 throw new NotImplementedException();
             }
 
-            public bool Use(Actor user) {
+            public virtual bool Use(IActor user) {
                 throw new NotImplementedException();
+            }
+
+            public override string ToString() {
+                return Name;
             }
         }
 
+        public class Stone : BaseItem {
+            public Stone(IInventory location) : base(location) {
+            }
+
+            public override string Name => "Stone";
+
+            public override string Description => "A grey rock-hard stone.";
+
+            public override int Value => 0;
+        }
+
         public static class Extensions {
+            /// <summary>
+            /// Finds an item in an inventory.
+            /// </summary>
+            /// <param name="inv">The inventory to search</param>
+            /// <param name="name">The name of the item. Doesn't have to be exact, but it is expected to be all-lowercase</param>
+            /// <returns>An item or null if none was found.</returns>
             public static IItem FindItem(this IInventory inv, string name) {
                 try {
                     return inv.Inventory.First((item) => item.Name.ToLower().Contains(name));
@@ -109,6 +151,12 @@ namespace TextAdv {
                 }
             }
 
+            /// <summary>
+            /// Finds all matching items in an inventory.
+            /// </summary>
+            /// <param name="inv">The inventory to search</param>
+            /// <param name="name">The name of the wanted item.</param>
+            /// <returns>A list of items or null if none was found.</returns>
             public static IEnumerable<IItem> FindItems(this IInventory inv, string name) {
                 try {
                     return inv.Inventory.Where((item) => item.Name.ToLower().Contains(name));

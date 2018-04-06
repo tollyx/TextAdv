@@ -10,14 +10,12 @@ namespace TextAdv {
             if (args.Length == 0 && !PromptYesOrNo("Do you want to go on an adventure?")) {
                 return;
             }
-
             string name = args.Length == 0 ? Prompt("What is your name?") : String.Join(" ", args);
-
             if (name.Length == 0) {
                 name = "Anon";
             }
-
             Console.WriteLine($"Hello, {name}! Off we go!\n");
+
             GameLoop(new World(name));
         }
 
@@ -31,6 +29,9 @@ namespace TextAdv {
             LookCommand.Print(world.Player.CurrentPosition);
             while (true) {
                 ICommand cmd = PromptCommand(world);
+                // The execute method tells us if we should update the world or not,
+                // since we don't want to update the world if the command was invalid
+                // or it was just inspecting something.
                 if (cmd.Execute(world)) {
                     world.Tick();
                 }
