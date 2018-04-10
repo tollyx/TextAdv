@@ -47,6 +47,10 @@ namespace TextAdv {
             }
         }
 
+        static public void Error(string what, string why) {
+            Say($"Error: {what}: {why}");
+        }
+
         static public void Spacer() {
             Say("");
         }
