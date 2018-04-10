@@ -1,47 +1,112 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using TextAdv.Items;
 
 namespace TextAdv {
     public interface IActor : IInventory {
         string Name { get; }
-        MapNode CurrentPosition { get; }
+        MapNode Location { get; }
         void Tick();
         event ActorMovedEvent ActorMoved;
         bool Move(Direction dir);
         void SetLocation(MapNode node);
     }
 
-    public abstract class BaseActor : IActor {
+    public abstract class BaseActor : IActor, IEquipper {
         public event ActorMovedEvent ActorMoved;
 
-        public MapNode CurrentPosition { get; protected set; }
-
-        public IList<IItem> Inventory => _inventory;
+        public MapNode Location { get; protected set; }
 
         public string Name { get; protected set; }
 
         List<IItem> _inventory;
 
-        public BaseActor(MapNode position) {
+        Dictionary<EquipSlot, IEquippable> _equipment;
+
+        public IDictionary<EquipSlot, IEquippable> Equipment => _equipment;
+
+        public BaseActor() {
             _inventory = new List<IItem>();
-            CurrentPosition = position;
+            Location = null;
         }
 
         public abstract void Tick();
 
         public virtual bool Move(Direction dir) {
-            MapNode node = CurrentPosition.GetNeighbour(dir);
+            MapNode node = Location.GetNeighbour(dir);
             if (node != null) {
-                ActorMoved?.Invoke(this, new ActorMovedEventArgs(CurrentPosition, node, dir));
-                CurrentPosition = node;
+                Location.RemoveActor(this);
+                node.AddActor(this);
+                Location = node;
+                ActorMoved?.Invoke(this, new ActorMovedEventArgs(Location, node, dir));
+                return true;
+            }
+            Program.Error("Cannot move player", "The player location is null");
+            return false;
+        }
+
+        public void SetLocation(MapNode node) {
+            if (node != Location) {
+                Location?.RemoveActor(this);
+                node.AddActor(this);
+                Location = node;
+                ActorMoved?.Invoke(this, new ActorMovedEventArgs(Location, node, Direction.None));
+            }
+        }
+
+        public override string ToString() {
+            return Name;
+        }
+
+        public bool Equip(IEquippable item) {
+            if (_equipment.ContainsKey(item.Slot) || !item.OnEquip(this)) {
+                return false;
+            }
+            else {
+                Program.Say($"You equipped the {item.Name}");
+                _equipment.Add(item.Slot, item);
+                _inventory.Remove(item);
+                return true;
+            }
+        }
+
+        public bool UnEquip(EquipSlot slot) {
+            if (_equipment.ContainsKey(slot) && _equipment[slot].OnUnEquip(this)) {
+                var item = _equipment[slot];
+                _equipment.Remove(slot);
+                _inventory.Add(item);
                 return true;
             }
             return false;
         }
 
-        public void SetLocation(MapNode node) {
-            ActorMoved?.Invoke(this, new ActorMovedEventArgs(CurrentPosition, node, Direction.None));
-            CurrentPosition = node;
+        public bool UnEquip(IEquippable item) {
+            if (_equipment.ContainsValue(item) && item.OnUnEquip(this)) {
+                _equipment.Remove(item.Slot);
+                _inventory.Add(item);
+                return true;
+            }
+            return false;
+        }
+
+        public bool AddItem(IItem item) {
+            if (!_inventory.Contains(item)) {
+                _inventory.Add(item);
+                item.SetLocation(this);
+            }
+            return true;
+        }
+
+        public bool RemoveItem(IItem item) {
+            return _inventory.Remove(item);
+        }
+
+        public IList<IItem> GetItems() {
+            return _inventory.ToList();
+        }
+
+        public IList<IEquippable> GetEquippedItems() {
+            return _equipment.Values.ToList();
         }
     }
 

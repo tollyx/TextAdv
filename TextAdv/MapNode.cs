@@ -10,13 +10,13 @@ namespace TextAdv {
         public string Name { private set; get; }
         public string Description { private set; get; }
 
-        public IList<IItem> Inventory => _inventory;
-
         Dictionary<Direction, MapNode> neighbours = new Dictionary<Direction, MapNode>();
         List<IItem> _inventory;
+        private List<IActor> _actors;
 
         public MapNode(string name, string description) {
             _inventory = new List<IItem>();
+            _actors = new List<IActor>();
             Name = name;
             Description = description;
         }
@@ -51,8 +51,34 @@ namespace TextAdv {
             return neighbours.Keys.ToList();
         }
 
+        public IList<IActor> GetActors() {
+            return _actors.ToList();
+        }
+
+        public bool AddActor(IActor actor) {
+            _actors.Add(actor);
+            return true;
+        }
+
+        public bool RemoveActor(IActor actor) {
+            return _actors.Remove(actor);
+        }
+
         public IList<IItem> GetItems() {
-            return _inventory;
+            return _inventory.ToList();
+        }
+
+        public bool AddItem(IItem item) {
+            if (!_inventory.Contains(item)) {
+                _inventory.Add(item);
+                item.SetLocation(this);
+                return true;
+            }
+            return false;
+        }
+
+        public bool RemoveItem(IItem item) {
+            return _inventory.Remove(item);
         }
     }
 }

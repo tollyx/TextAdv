@@ -127,7 +127,7 @@ namespace TextAdv {
                 }
                 string name = String.Join(" ", args);
 
-                IItem item = world.Player.CurrentPosition.FindItem(name);
+                IItem item = world.Player.Location.FindItem(name);
                 if (item != null) return new PickUpCommand(item);
 
                 Program.Say($"You can't see any {name}");
@@ -139,7 +139,16 @@ namespace TextAdv {
         }
 
         public bool Execute(World world) {
-            return Item.PickUp(world.Player);
+            if (Item.Location != world.Player.Location) {
+                Program.Error("Cannot pick up item", "Item is not in the same location as the player.");
+                return false;
+            }
+
+            if (Item.OnPickUp(world.Player)) {
+                Item.SetLocation(world.Player);
+                return true;
+            }
+            return false;
         }
     }
 
@@ -148,10 +157,19 @@ namespace TextAdv {
     /// </summary>
     public class PickUpAllCommand : ICommand {
         public bool Execute(World world) {
+            var list = world.Player.Location.GetItems();
+            if (list.Count == 0) {
+                Program.Say("There are no items to pick up here.");
+                return false;
+            }
+
             bool shouldPassTime = false;
-            var list = world.Player.CurrentPosition.Inventory.ToList();
             foreach (var item in list) {
-                shouldPassTime = item.PickUp(world.Player) || shouldPassTime;
+                if (item.OnPickUp(world.Player)) {
+                    shouldPassTime = true;
+                    item.SetLocation(world.Player);
+                }
+                
             }
             return shouldPassTime;
         }
@@ -186,7 +204,16 @@ namespace TextAdv {
         }
 
         public bool Execute(World world) {
-            return Item.Drop(world.Player);
+            if (Item.Location != world.Player) {
+                Program.Error("Cannot drop item", "Item is not in the players inventory.");
+                return false;
+            }
+
+            if (Item.OnDrop(world.Player)) {
+                Item.SetLocation(world.Player.Location);
+                return true;
+            }
+            return false;
         }
     }
 
@@ -220,7 +247,10 @@ namespace TextAdv {
         }
 
         public bool Execute(World world) {
-            return Item.Consume(world.Player);
+            if (Item.OnConsume(world.Player)) {
+                return true;
+            }
+            return false;
         }
     }
 
@@ -254,7 +284,11 @@ namespace TextAdv {
         }
 
         public bool Execute(World world) {
-            return Item.Equip(world.Player);
+            if (Item.OnEquip(world.Player)) {
+                world.Player.Equip(Item);
+                return true;
+            }
+            return false;
         }
     }
 
@@ -262,7 +296,11 @@ namespace TextAdv {
         public IEquippable Item { get; private set; }
 
         public bool Execute(World world) {
-            return Item.Unequip(world.Player);
+            if (Item.OnUnEquip(world.Player)) {
+                world.Player.UnEquip(Item);
+                return true;
+            }
+            return false;
         }
     }
 
@@ -278,7 +316,7 @@ namespace TextAdv {
 
         public static void Print(IActor act) {
             Program.Say("Inventory:");
-            foreach (var item in act.Inventory) {
+            foreach (var item in act.GetItems()) {
                 Program.Say(item.Name);
             }
         }
@@ -290,7 +328,7 @@ namespace TextAdv {
         }
 
         public bool Execute(World world) {
-            Print(world.Player.CurrentPosition);
+            Print(world.Player.Location);
             return false;
         }
 
@@ -298,12 +336,14 @@ namespace TextAdv {
             Program.Say($"You are here: {location.Name}");
             Program.Say(location.Description);
 
-            string items = "Items: " + string.Join(", ", location.Inventory);
+            string items = "Items: " + string.Join(", ", location.GetItems());
             Program.Say(items);
 
             string dirs = "Paths: " + string.Join(", ", location.GetDirections());
-
             Program.Say(dirs);
+
+            string actors = "Actors: " + string.Join(", ", location.GetActors().Where(act => (!(act is PlayerActor) && act.Location == location)));
+            Program.Say(actors);
         }
     }
 

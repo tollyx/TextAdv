@@ -26,7 +26,7 @@ namespace TextAdv {
         static void GameLoop(World world) {
             // We want to print the current location when the game starts, 
             // so the player knows where he is.
-            LookCommand.Print(world.Player.CurrentPosition);
+            LookCommand.Print(world.Player.Location);
             while (true) {
                 // The execute method tells us if we should update the world or not,
                 // since we don't want to update the world if the command was invalid

@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 using TextAdv.Items;
 
 namespace TextAdv {
-    public class PlayerActor : BaseActor {
+    public class PlayerActor : BaseActor, IEquipper {
 
-        public PlayerActor(MapNode position, string name) : base(position) {
+        public PlayerActor(string name) : base() {
             Name = name;
         }
 
         public override bool Move(Direction dir) {
             if (base.Move(dir)) {
                 // We successfully moved! 
-                // Let's print our new location.
-                LookCommand.Print(CurrentPosition);
+                // Let's print our new location. 
+                LookCommand.Print(Location);
                 return true;
             }
             return false;

@@ -6,21 +6,72 @@ using System.Threading.Tasks;
 
 namespace TextAdv {
     namespace Items {
+        /// <summary>
+        /// A generic item that can be placed in inventories.
+        /// </summary>
         public interface IItem {
+            /// <summary>
+            /// The name of the item. Should be unique for each item unless they are (or should appear) identical.
+            /// </summary>
             string Name { get; }
+
+            /// <summary>
+            /// The description of the item. Is shown when the item is inspected.
+            /// </summary>
             string Description { get; }
+
+            /// <summary>
+            /// The value of the item in the game's currency.
+            /// </summary>
             int Value { get; }
+
+            /// <summary>
+            /// The current location of the item.
+            /// </summary>
             IInventory Location { get; }
-            bool Use(IActor user);
-            bool PickUp(IActor picker);
+
+            /// <summary>
+            /// Sets the location of the item.
+            /// </summary>
+            /// <param name="location">The new location for the item.</param>
+            void SetLocation(IInventory location);
+
+            /// <summary>
+            /// Gets called when the item is used.
+            /// </summary>
+            /// <param name="user">The Actor which is using the item</param>
+            /// <returns>Wether the use attempt was successful or not. (returns false to cancel the use and not pass time)</returns>
+            bool OnUse(IActor user);
+
+            /// <summary>
+            /// Gets called when the item is picked up.
+            /// </summary>
+            /// <param name="picker">The Actor which is picking the item up.</param>
+            /// <returns>If the pickup  attempt was successful or not. (returns false to cancel the pickup)</returns>
+            bool OnPickUp(IActor picker);
+
             /// <summary>
             /// Drops the item.
             /// </summary>
             /// <param name="dropper">The actor which is doing the dropping.</param>
-            /// <returns>Wether the attempt was successful or not.</returns>
-            bool Drop(IActor dropper);
-            bool Throw(IActor thrower, IActor target);
-            bool Give(IActor giver, IActor reciever);
+            /// <returns>Wether the drop attempt was successful or not. (returns false to cancel the drop)</returns>
+            bool OnDrop(IActor dropper);
+
+            /// <summary>
+            /// Gets called when the item is thrown
+            /// </summary>
+            /// <param name="thrower">The Actor that is throwing the item</param>
+            /// <param name="target">The Actor which is the target of the throw</param>
+            /// <returns>Wether the item was successfully thrown, not necessarily hitting the target. (return false to cancel the throw)</returns>
+            bool OnThrow(IActor thrower, IActor target);
+
+            /// <summary>
+            /// Gets called when the item is given to an Actor
+            /// </summary>
+            /// <param name="giver">The Actor who is giving the item</param>
+            /// <param name="reciever">The who is recieving the item</param>
+            /// <returns>Wether the give attempt was successful or not. (returns false to cancel the give)</returns>
+            bool OnGive(IActor giver, IActor reciever);
 
         }
 
@@ -28,14 +79,37 @@ namespace TextAdv {
         /// An object with an inventory. Actors, Map nodes, Chests etc.
         /// </summary>
         public interface IInventory {
-            IList<IItem> Inventory { get; }
+            /// <summary>
+            /// Adds an item to the inventory.
+            /// </summary>
+            /// <param name="item">The item to add</param>
+            /// <returns>Wether the item was added successfully or not.</returns>
+            bool AddItem(IItem item);
+
+            /// <summary>
+            /// Removes an item from the inventory.
+            /// </summary>
+            /// <param name="item">The item to remove</param>
+            /// <returns>Wether the item was removed successfully or not.</returns>
+            bool RemoveItem(IItem item);
+
+            /// <summary>
+            /// Gets a copy of the inventory list.
+            /// </summary>
+            /// <returns>A copy of the list of items in the inventory.</returns>
+            IList<IItem> GetItems();
         }
 
         /// <summary>
         /// An item that can be consumed.
         /// </summary>
         public interface IConsumable : IItem {
-            bool Consume(BaseActor consumer);
+            /// <summary>
+            /// Gets called when the item is consumed. The item decides itself if it is removed or not after consumption.
+            /// </summary>
+            /// <param name="consumer">The Actor that is attempting to consume the item</param>
+            /// <returns>Wether the action was successful or not. (return false to not pass time)</returns>
+            bool OnConsume(IActor consumer);
         }
 
         public enum EquipSlot {
@@ -55,11 +129,57 @@ namespace TextAdv {
         /// An item that can equipped
         /// </summary>
         public interface IEquippable : IItem {
+            /// <summary>
+            /// The equip slot the item occupies.
+            /// </summary>
             EquipSlot Slot { get; }
-            bool Equip(BaseActor wearer);
-            bool Unequip(BaseActor wearer);
+
+            /// <summary>
+            /// Gets called when the Actor attempts to equip the item.
+            /// </summary>
+            /// <param name="wearer">The actor which is attempting to equip the item.</param>
+            /// <returns>Wether the attempt was successful or not. (return false to cancel the equip)</returns>
+            bool OnEquip(IActor wearer);
+
+            /// <summary>
+            /// Gets called when the Actor attempts to unequip the item.
+            /// </summary>
+            /// <param name="wearer">The actor which is attempting to unequip the item.</param>
+            /// <returns>Wether the attempt was successful or not. (return false to cancel the unequip)</returns>
+            bool OnUnEquip(IActor wearer);
         }
 
+        /// <summary>
+        /// Something (presumably an actor) that can equip items.
+        /// </summary>
+        public interface IEquipper {
+            /// <summary>
+            /// Equip the provided item
+            /// </summary>
+            /// <param name="item">The item to equip.</param>
+            /// <returns>Wether the item was successfully equipped or not</returns>
+            bool Equip(IEquippable item);
+
+            /// <summary>
+            /// UeEquip the item that occupies the provided slot
+            /// </summary>
+            /// <param name="slot">The item slot to unequip.</param>
+            /// <returns>Wether the item was successfully unequipped or not</returns>
+            bool UnEquip(EquipSlot slot);
+
+            /// <summary>
+            /// UeEquip the provided item
+            /// </summary>
+            /// <param name="item">The item to unequip.</param>
+            /// <returns>Wether the item was successfully unequipped or not</returns>
+            bool UnEquip(IEquippable item);
+
+            IList<IEquippable> GetEquippedItems();
+        }
+
+        /// <summary>
+        /// Base class with default implementations for most item methods.
+        /// </summary>
         public abstract class BaseItem : IItem {
             public abstract string Name { get; }
 
@@ -71,68 +191,74 @@ namespace TextAdv {
 
             IInventory _location;
 
-            public BaseItem(IInventory location) {
-                _location = location;
+            public BaseItem() {
+                _location = null;
             }
 
-            public virtual bool Drop(IActor dropper) {
-                if (_location == dropper) {
-                    Program.Say($"You dropped the {Name} to the ground.");
-                    dropper.Inventory.Remove(this);
-                    dropper.CurrentPosition.Inventory.Add(this);
-                    _location = dropper.CurrentPosition;
-                    return true;
-                }
-                Program.Say($"You can't drop a {Name} that you don't have.");
+            public virtual bool OnDrop(IActor dropper) {
+                Program.Say($"You dropped the {Name} to the ground.");
+                return true;
+            }
+
+            public virtual bool OnGive(IActor giver, IActor reciever) {
+                Program.Say($"You gave {reciever.Name} the {Name}.");
+                return true;
+            }
+
+            public virtual bool OnPickUp(IActor picker) {
+                Program.Say($"You picked up the {Name} and put it in your inventory.");
+                return true;
+            }
+
+            public virtual bool OnThrow(IActor thrower, IActor target) {
+                Program.Say($"You threw the {Name} at the {target.Name}!");
+                return true;
+            }
+
+            public virtual bool OnUse(IActor user) {
+                Program.Say($"You don't know how to use the {Name}.");
                 return false;
-            }
-
-            public virtual bool Give(IActor giver, IActor reciever) {
-                if (giver == _location) {
-                    Program.Say($"You gave {reciever.Name} the {Name}.");
-                    giver.Inventory.Remove(this);
-                    reciever.Inventory.Add(this);
-                    _location = reciever;
-                    return true;
-                }
-                Program.Say($"You can't give a {Name} that you don't have.");
-                return false;
-            }
-
-            public virtual bool PickUp(IActor picker) {
-                if (picker.CurrentPosition == _location) {
-                    Program.Say($"You picked up the {Name} and put it in your inventory.");
-                    picker.CurrentPosition.Inventory.Remove(this);
-                    picker.Inventory.Add(this);
-                    _location = picker;
-                    return true;
-                }
-                Program.Say($"You can't pick up a {Name} that you don't have.");
-                return false;
-            }
-
-            public virtual bool Throw(IActor thrower, IActor target) {
-                throw new NotImplementedException();
-            }
-
-            public virtual bool Use(IActor user) {
-                throw new NotImplementedException();
             }
 
             public override string ToString() {
                 return Name;
             }
+
+            public void SetLocation(IInventory location) {
+                if (location == null) throw new ArgumentNullException("location");
+                if (location != _location) {
+                    _location?.RemoveItem(this);
+                    _location = location;
+                    _location.AddItem(this);
+                }
+            }
+
+            protected void Erase() {
+                _location?.RemoveItem(this);
+                _location = null;
+            }
         }
 
         public class Stone : BaseItem {
-            public Stone(IInventory location) : base(location) {
-            }
-
             public override string Name => "Stone";
 
             public override string Description => "A grey rock-hard stone.";
 
             public override int Value => 0;
+        }
+
+        public class Potion : BaseItem, IConsumable {
+            public override string Name => "Potion";
+
+            public override string Description => "A flask filled with a blue mysterious liquid.";
+
+            public override int Value => 10;
+
+            public bool OnConsume(IActor consumer) {
+                Program.Say("You drank the potion. It's bitter, but it didn't seem to have any effect.");
+                Erase();
+                return true;
+            }
         }
 
         public static class Extensions {
@@ -180,7 +306,7 @@ namespace TextAdv {
             /// <param name="name">The name of the wanted item.</param>
             /// <returns>A list of items or null if none was found.</returns>
             public static IList<IItem> FindItems(this IInventory inv, string name) {
-                return inv.Inventory.Where((item) => item.Name.ToLower().Contains(name)).ToList();
+                return inv.GetItems().Where((item) => item.Name.ToLower().Contains(name)).ToList();
             }
         }
     }

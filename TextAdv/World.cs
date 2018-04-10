@@ -8,7 +8,7 @@ namespace TextAdv {
     public class World {
         public List<MapNode> Nodes { get; private set; }
         public PlayerActor Player { get; private set; }
-        public List<BaseActor> Actors { get; private set; }
+        public List<IActor> Actors { get; private set; }
 
         public World(string playername) {
             Nodes = new List<MapNode> {
@@ -18,16 +18,24 @@ namespace TextAdv {
                 new MapNode("Castle East Hall", "A hall like many others, filled with unimportant doors.")
             };
             Nodes[0].SetNeighbour(Direction.In, Nodes[1], true);
-            Nodes[0].Inventory.Add(new Items.Stone(Nodes[0]));
-            Nodes[0].Inventory.Add(new Items.Stone(Nodes[0]));
-            Nodes[0].Inventory.Add(new Items.Stone(Nodes[0]));
+            Nodes[0].AddItem(new Items.Stone());
+            Nodes[0].AddItem(new Items.Stone());
+            Nodes[0].AddItem(new Items.Stone());
             Nodes[1].SetNeighbour(Direction.West, Nodes[2], true);
             Nodes[1].SetNeighbour(Direction.East, Nodes[3], true);
-            Player = new PlayerActor(Nodes[0], playername);
+            Nodes[2].AddItem(new Items.Potion());
+            Player = new PlayerActor(playername);
             
-            Actors = new List<BaseActor> {
-                Player
-            };
+            Actors = new List<IActor>();
+
+            AddActor(Player, Nodes[0]);
+        }
+
+        public void AddActor(IActor actor, MapNode location) {
+            if (!Actors.Contains(actor)) {
+                Actors.Add(actor);
+            }
+            actor.SetLocation(location);
         }
 
         public void Tick() {
