@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 using TextAdv.Items;
 
 namespace TextAdv {
+    /// <summary>
+    /// A command that can be executed.
+    /// All needed parameters should have been passed in its constructor.
+    /// </summary>
     public interface ICommand {
         /// <summary>
         /// Executes the command.
@@ -15,11 +19,14 @@ namespace TextAdv {
         bool Execute(World world);
     }
 
+    /// <summary>
+    /// Static class for general command methods and utilities.
+    /// </summary>
     public static class Command {
 
         delegate ICommand CommandDelegate(string[] args, World world);
 
-        // Iterating over this is apparently faster than a dict lookup?!
+        // Iterating over this abomination is apparently faster than a dict lookup?!
         // Yes, I benchmarked it myself, but it was probably an unreliable result.
         static readonly (string[], CommandDelegate)[] commands = {
             (new string[]{ "pick", "take", "ta", "get", "grab" }, PickUpCommand.Parse),
@@ -34,7 +41,7 @@ namespace TextAdv {
         };
 
         /// <summary>
-        /// Parses input from the user and spits out the proper command.
+        /// Parses input from the user and returns the corresponding command, if any was found.
         /// </summary>
         /// <param name="input">User input</param>
         /// <param name="world">The world the command will be executed in.</param>
@@ -60,6 +67,9 @@ namespace TextAdv {
         }
     }
 
+    /// <summary>
+    /// Moves the player character in a direction.
+    /// </summary>
     public class MoveCommand : ICommand {
         public Direction Where { get; private set; }
 
@@ -100,6 +110,9 @@ namespace TextAdv {
         }
     }
 
+    /// <summary>
+    /// Command for the item to pick up an item
+    /// </summary>
     public class PickUpCommand : ICommand {
         public IItem Item { get; private set; }
 
@@ -130,6 +143,9 @@ namespace TextAdv {
         }
     }
 
+    /// <summary>
+    /// Command for making the player pick up all items in the current location
+    /// </summary>
     public class PickUpAllCommand : ICommand {
         public bool Execute(World world) {
             bool shouldPassTime = false;
@@ -141,6 +157,9 @@ namespace TextAdv {
         }
     }
 
+    /// <summary>
+    /// Command for dropping an item from the players inventory to the current location.
+    /// </summary>
     public class DropCommand : ICommand {
         public IItem Item { get; private set; }
 
@@ -148,19 +167,22 @@ namespace TextAdv {
             Item = item;
         }
 
-        public static ICommand Parse(string[] args, World world) {
-            if (args.Length > 0) {
-                string cmd = String.Join(" ", args);
-
-                IItem item = world.Player.FindItem(cmd);
-                if (item != null) return new DropCommand(item);
-
-                Program.Say($"You don't have a {cmd}");
-            }
-            else {
+        public static DropCommand Parse(string[] args, World world) {
+            if (args.Length == 0) {
                 Program.Say("You need to specify what you want to drop.");
+                return null;
             }
-            return null;
+
+            string cmd = String.Join(" ", args);
+
+            IItem item = world.Player.FindItem(cmd);
+            if (item != null) {
+                return new DropCommand(item);
+            } 
+            else {
+                Program.Say($"You don't have a {cmd}");
+                return null;
+            }
         }
 
         public bool Execute(World world) {
@@ -175,27 +197,26 @@ namespace TextAdv {
             Item = item;
         }
 
-        public static ICommand Parse(string[] args, World world) {
-            if (args.Length > 0) {
-                string name = String.Join(" ", args);
+        public static ConsumeCommand Parse(string[] args, World world) {
+            if (args.Length == 0) {
+                Program.Say("You need to specify what you want to pick up.");
+                return null;
+            }
 
-                IItem item = world.Player.FindItem(name);
-                if (item != null) {
-                    if (item is IConsumable) {
-                        return new ConsumeCommand(item as IConsumable);
-                    }
-                    else {
-                        Program.Say($"You can't eat the {item.Name}.");
-                    }
-                }
-                else {
-                    Program.Say($"You don't have any {name}.");
-                }
+            string name = String.Join(" ", args);
+            IItem item = world.Player.FindItem(name);
+            if (item == null) {
+                Program.Say($"You don't have any {name}.");
+                return null;
+            }
+
+            if (item is IConsumable) {
+                return new ConsumeCommand(item as IConsumable);
             }
             else {
-                Program.Say("You need to specify what you want to pick up.");
+                Program.Say($"You can't eat the {item.Name}.");
+                return null;
             }
-            return null;
         }
 
         public bool Execute(World world) {
@@ -210,27 +231,26 @@ namespace TextAdv {
             Item = item;
         }
 
-        public static ICommand Parse(string[] args, World world) {
-            if (args.Length > 0) {
-                string name = String.Join(" ", args);
+        public static EquipCommand Parse(string[] args, World world) {
+            if (args.Length == 0) {
+                Program.Say("You need to specify what you want to wear.");
+                return null;
+            }
+            string name = String.Join(" ", args);
 
-                IItem item = world.Player.FindItem(name);
-                if (item != null) {
-                    if (item is IEquippable) {
-                        return new EquipCommand(item as IEquippable);
-                    }
-                    else {
-                        Program.Say($"You can't equip the {item.Name}.");
-                    }
-                }
-                else {
-                    Program.Say($"You don't have any {name}.");
-                }
+            IItem item = world.Player.FindItem(name);
+            if (item == null) {
+                Program.Say($"You don't have any {name}.");
+                return null;
+            }
+
+            if (item is IEquippable) {
+                return new EquipCommand(item as IEquippable);
             }
             else {
-                Program.Say("You need to specify what you want to wear.");
+                Program.Say($"You can't equip the {item.Name}.");
+               return null;
             }
-            return null;
         }
 
         public bool Execute(World world) {
@@ -265,7 +285,7 @@ namespace TextAdv {
     }
 
     public class LookCommand : ICommand {
-        public static ICommand Parse(string[] args, World world) {
+        public static LookCommand Parse(string[] args, World world) {
             return new LookCommand();
         }
 
@@ -289,7 +309,7 @@ namespace TextAdv {
 
     public class ClearCommand : ICommand {
 
-        public static ICommand Parse(string[] args, World world) {
+        public static ClearCommand Parse(string[] args, World world) {
             return new ClearCommand();
         }
 
