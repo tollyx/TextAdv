@@ -26,12 +26,16 @@ Non-complete list of ideas and things to do
 		* `Console.Beep()` Or maybe something else?
 * [ ] Commands
 	* [x] Movement
-	* [x] Pick up
+	* [x] Take
+		* [x] Take all
+		* [x] Item disambiguation (Make the player specify which item in case 
+		of multiple matches)
 	* [x] Drop
 	* [x] Eat/Drink
 		* Maybe make them two different commands?
 	* [x] Look
 	* [x] Equip
+	* [x] Clear
 	* [ ] Unequip
 	* [ ] Examine/Inspect
 	* [ ] Use
