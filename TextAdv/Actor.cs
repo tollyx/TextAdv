@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using TextAdv.Items;
 
@@ -10,6 +11,7 @@ namespace TextAdv {
         event ActorMovedEvent ActorMoved;
         bool Move(Direction dir);
         void SetLocation(MapNode node);
+        void Erase();
     }
 
     public abstract class BaseActor : IActor, IEquipper {
@@ -27,6 +29,7 @@ namespace TextAdv {
 
         public BaseActor() {
             _inventory = new List<IItem>();
+            _equipment = new Dictionary<EquipSlot, IEquippable>();
             Location = null;
         }
 
@@ -46,6 +49,7 @@ namespace TextAdv {
         }
 
         public void SetLocation(MapNode node) {
+            if (node == null) throw new ArgumentNullException("node");
             if (node != Location) {
                 Location?.RemoveActor(this);
                 node.AddActor(this);
@@ -54,11 +58,10 @@ namespace TextAdv {
             }
         }
 
-        public override string ToString() {
-            return Name;
-        }
+        public override string ToString() => Name;
 
         public bool Equip(IEquippable item) {
+            if (item == null) throw new ArgumentNullException("item");
             if (_equipment.ContainsKey(item.Slot) || !item.OnEquip(this)) {
                 return false;
             }
@@ -90,6 +93,7 @@ namespace TextAdv {
         }
 
         public bool AddItem(IItem item) {
+            if (item == null) throw new ArgumentNullException("item");
             if (!_inventory.Contains(item)) {
                 _inventory.Add(item);
                 item.SetLocation(this);
@@ -108,11 +112,24 @@ namespace TextAdv {
         public IList<IEquippable> GetEquippedItems() {
             return _equipment.Values.ToList();
         }
+
+        public bool AddItems(params IItem[] items) {
+            bool success = false;
+            foreach (var item in items) {
+                success = AddItem(item) || success;
+            }
+            return success;
+        }
+
+        public void Erase() {
+            Location?.RemoveActor(this);
+            Location = null;
+        }
     }
 
     public delegate void ActorMovedEvent(object sender, ActorMovedEventArgs args);
 
-    public class ActorMovedEventArgs : System.EventArgs {
+    public class ActorMovedEventArgs : EventArgs {
         public ActorMovedEventArgs(MapNode from, MapNode to, Direction dir) {
             From = from;
             To = to;

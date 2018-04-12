@@ -51,6 +51,11 @@ namespace TextAdv {
             return neighbours.Keys.ToList();
         }
 
+        public void Cleanup() {
+            _actors.RemoveAll(x => x.Location != this);
+            _inventory.RemoveAll(x => x.Location != this);
+        }
+
         public IList<IActor> GetActors() {
             return _actors.ToList();
         }
@@ -79,6 +84,16 @@ namespace TextAdv {
 
         public bool RemoveItem(IItem item) {
             return _inventory.Remove(item);
+        }
+
+        public bool AddItems(params IItem[] items) {
+            foreach (var item in items) {
+                if (!_inventory.Contains(item)) {
+                    _inventory.Add(item);
+                    item.SetLocation(this);
+                }
+            }
+            return true;
         }
     }
 }

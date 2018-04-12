@@ -16,7 +16,7 @@ namespace TextAdv {
         /// </summary>
         /// <param name="world">The world to execute the command in.</param>
         /// <returns>Wether we should pass forward the world one tick.</returns>
-        bool Execute(World world);
+        bool Execute(PlayerActor player);
     }
 
     /// <summary>
@@ -24,20 +24,22 @@ namespace TextAdv {
     /// </summary>
     public static class Command {
 
-        delegate ICommand CommandDelegate(string[] args, World world);
+        public delegate ICommand CommandDelegate(string[] args, World world);
 
         // Iterating over this abomination is apparently faster than a dict lookup?!
         // Yes, I benchmarked it myself, but it was probably an unreliable result.
-        static readonly (string[], CommandDelegate)[] commands = {
-            (new string[]{ "pick", "take", "ta", "get", "grab" }, PickUpCommand.Parse),
-            (new string[]{ "dr", "drop" },  DropCommand.Parse),
-            (new string[]{ "i", "inv", "inventory", "bag" }, InventoryCommand.Parse ),
-            (new string[]{ "dri", "drink", "eat", "consume" }, ConsumeCommand.Parse ),
-            (new string[]{ "we", "wear", "eq", "equip" }, EquipCommand.Parse ),
-            //(new string[]{ "re", "remove", "uneq", "unequip" }, UnequipCommand.Parse),
-            //(new string[]{ "op", "open", "cl", "close" }, OpenCommand.Parse ),
-            (new string[]{ "l", "look", "here", "ls" }, LookCommand.Parse ),
-            (new string[]{ "clear" }, ClearCommand.Parse ),
+        // TODO: Move the arrays to static members of the classes
+        public static readonly (string[] cmds, CommandDelegate callback)[] commands = {
+            (new[]{ "move", "mv", "go", "walk", "run" }, MoveCommand.Parse),
+            (new[]{ "pick", "take", "ta", "get", "grab" }, PickUpCommand.Parse),
+            (new[]{ "drop", "dr" },  DropCommand.Parse),
+            (new[]{ "inv", "i", "inventory", "bag" }, InventoryCommand.Parse),
+            (new[]{ "eat", "dri", "drink", "consume" }, ConsumeCommand.Parse),
+            (new[]{ "wear", "we", "eq", "equip" }, EquipCommand.Parse),
+            (new[]{ "re", "remove", "uneq", "unequip" }, UnequipCommand.Parse),
+            //(new[]{ "op", "open", "cl", "close" }, OpenCommand.Parse),
+            (new[]{ "look", "l", "here", "ls" }, LookCommand.Parse),
+            (new[]{ "clear" }, ClearCommand.Parse),
         };
 
         /// <summary>
@@ -50,17 +52,20 @@ namespace TextAdv {
             string[] args = input.ToLower().Split().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
             if (args.Length == 0) return null;
 
-            string cmd = args[0];
-            args = args.Skip(1).ToArray();
-
-            ICommand move = MoveCommand.Parse(cmd);
+            // Quick-syntax for moving around, because that's what you constantly do.
+            ICommand move = MoveCommand.Parse(args, world);
             if (move != null) {
                 return move;
             }
 
-            foreach (var item in commands) {
-                if (item.Item1.Contains(cmd)) {
-                    return item.Item2(args, world);
+            string cmd = args[0];
+            args = args.Skip(1).ToArray();
+            
+            
+
+            foreach ((var cmds, var callback) in commands) {
+                if (cmds.Contains(cmd)) {
+                    return callback(args, world);
                 }
             }
             return null;
@@ -73,25 +78,31 @@ namespace TextAdv {
     public class MoveCommand : ICommand {
         public Direction Where { get; private set; }
 
-        static readonly (string[], Direction)[] DirectionStrings = {
-            (new string[]{ "n", "north" }, Direction.North),
-            (new string[]{ "s", "south" }, Direction.South),
-            (new string[]{ "w", "west" }, Direction.West),
-            (new string[]{ "e", "east" }, Direction.East),
-            (new string[]{ "nw", "northwest" }, Direction.NorthWest),
-            (new string[]{ "ne", "northeast" }, Direction.NorthEast),
-            (new string[]{ "sw", "southwest" }, Direction.SouthWest),
-            (new string[]{ "se", "southeast" }, Direction.SouthEast),
-            (new string[]{ "u", "up" }, Direction.Up),
-            (new string[]{ "d", "down" }, Direction.Down),
-            (new string[]{ "in" }, Direction.In),
-            (new string[]{ "out" }, Direction.Out),
+        public static string Syntax => "move <direction>";
+
+        public static string Description => "Moves the player, if possible, in the given direction.";
+
+        static readonly (string[] cmds, Direction dir)[] DirectionStrings = {
+            (new[]{ "n", "north" }, Direction.North),
+            (new[]{ "s", "south" }, Direction.South),
+            (new[]{ "w", "west" }, Direction.West),
+            (new[]{ "e", "east" }, Direction.East),
+            (new[]{ "nw", "northwest" }, Direction.NorthWest),
+            (new[]{ "ne", "northeast" }, Direction.NorthEast),
+            (new[]{ "sw", "southwest" }, Direction.SouthWest),
+            (new[]{ "se", "southeast" }, Direction.SouthEast),
+            (new[]{ "u", "up" }, Direction.Up),
+            (new[]{ "d", "down" }, Direction.Down),
+            (new[]{ "in" }, Direction.In),
+            (new[]{ "out" }, Direction.Out),
         };
 
-        public static MoveCommand Parse(string input) {
-            foreach (var item in DirectionStrings) {
-                if (item.Item1.Contains(input)) {
-                    return new MoveCommand(item.Item2);
+        public static ICommand Parse(string[] args, World world) {
+            if (args.Count() > 0) {
+                foreach ((var cmds, var dir) in DirectionStrings) {
+                    if (cmds.Contains(args[0])) {
+                        return new MoveCommand(dir);
+                    }
                 }
             }
             return null;
@@ -101,8 +112,8 @@ namespace TextAdv {
             Where = dir;
         }
 
-        public bool Execute(World world) {
-            if (world.Player.Move(Where)) {
+        public bool Execute(PlayerActor player) {
+            if (player.Move(Where)) {
                 return true;
             }
             Program.Say("You can't go that way.");
@@ -115,6 +126,10 @@ namespace TextAdv {
     /// </summary>
     public class PickUpCommand : ICommand {
         public IItem Item { get; private set; }
+
+        public static string Syntax => "take <item>";
+
+        public static string Description => "Picks up an item and puts it in the players inventory.";
 
         public PickUpCommand(IItem item) {
             Item = item;
@@ -138,14 +153,14 @@ namespace TextAdv {
             return null;
         }
 
-        public bool Execute(World world) {
-            if (Item.Location != world.Player.Location) {
+        public bool Execute(PlayerActor player) {
+            if (Item.Location != player.Location) {
                 Program.Error("Cannot pick up item", "Item is not in the same location as the player.");
                 return false;
             }
 
-            if (Item.OnPickUp(world.Player)) {
-                Item.SetLocation(world.Player);
+            if (Item.OnPickUp(player)) {
+                Item.SetLocation(player);
                 return true;
             }
             return false;
@@ -156,8 +171,12 @@ namespace TextAdv {
     /// Command for making the player pick up all items in the current location
     /// </summary>
     public class PickUpAllCommand : ICommand {
-        public bool Execute(World world) {
-            var list = world.Player.Location.GetItems();
+        public static string Syntax => "take all";
+
+        public static string Description => "Takes all items in the room and puts them in the players inventory";
+
+        public bool Execute(PlayerActor player) {
+            var list = player.Location.GetItems();
             if (list.Count == 0) {
                 Program.Say("There are no items to pick up here.");
                 return false;
@@ -165,9 +184,9 @@ namespace TextAdv {
 
             bool shouldPassTime = false;
             foreach (var item in list) {
-                if (item.OnPickUp(world.Player)) {
+                if (item.OnPickUp(player)) {
                     shouldPassTime = true;
-                    item.SetLocation(world.Player);
+                    item.SetLocation(player);
                 }
                 
             }
@@ -180,6 +199,10 @@ namespace TextAdv {
     /// </summary>
     public class DropCommand : ICommand {
         public IItem Item { get; private set; }
+
+        public static string Syntax => "drop <item>";
+
+        public static string Description => "Drops an item from the players inventory.";
 
         public DropCommand(IItem item) {
             Item = item;
@@ -203,14 +226,14 @@ namespace TextAdv {
             }
         }
 
-        public bool Execute(World world) {
-            if (Item.Location != world.Player) {
+        public bool Execute(PlayerActor player) {
+            if (Item.Location != player) {
                 Program.Error("Cannot drop item", "Item is not in the players inventory.");
                 return false;
             }
 
-            if (Item.OnDrop(world.Player)) {
-                Item.SetLocation(world.Player.Location);
+            if (Item.OnDrop(player)) {
+                Item.SetLocation(player.Location);
                 return true;
             }
             return false;
@@ -219,6 +242,10 @@ namespace TextAdv {
 
     public class ConsumeCommand : ICommand {
         public IConsumable Item { get; private set; }
+
+        public static string Syntax => "consume <item>";
+
+        public static string Description => "Consumes an item that is in the players inventory";
 
         public ConsumeCommand(IConsumable item) {
             Item = item;
@@ -246,8 +273,8 @@ namespace TextAdv {
             }
         }
 
-        public bool Execute(World world) {
-            if (Item.OnConsume(world.Player)) {
+        public bool Execute(PlayerActor player) {
+            if (Item.OnConsume(player)) {
                 return true;
             }
             return false;
@@ -256,6 +283,10 @@ namespace TextAdv {
 
     public class EquipCommand : ICommand {
         public IEquippable Item { get; private set; }
+
+        public static string Syntax => "wear <item>";
+
+        public static string Description => "Wears an item from the players inventory.";
 
         public EquipCommand(IEquippable item) {
             Item = item;
@@ -278,39 +309,53 @@ namespace TextAdv {
                 return new EquipCommand(item as IEquippable);
             }
             else {
-                Program.Say($"You can't equip the {item.Name}.");
+               Program.Say($"You can't equip the {item.Name}.");
                return null;
             }
         }
 
-        public bool Execute(World world) {
-            if (Item.OnEquip(world.Player)) {
-                world.Player.Equip(Item);
-                return true;
-            }
-            return false;
+        public bool Execute(PlayerActor player) {
+            return player.Equip(Item);
         }
     }
 
     public class UnequipCommand : ICommand {
         public IEquippable Item { get; private set; }
 
-        public bool Execute(World world) {
-            if (Item.OnUnEquip(world.Player)) {
-                world.Player.UnEquip(Item);
-                return true;
+        public static string Syntax => "remove <item>";
+
+        public static string Description => "Unequips an item and puts it in the players inventory";
+
+        public UnequipCommand(IEquippable item) {
+            Item = item;
+        }
+
+        public static ICommand Parse(string[] args, World world) {
+            var name = string.Join(" ", args).ToLower();
+            foreach (var item in world.Player.Equipment) {
+                if (item.Value.Name.ToLower().Contains(name)) {
+                    return new UnequipCommand(item.Value);
+                }
             }
-            return false;
+            return null;
+        }
+
+        public bool Execute(PlayerActor player) {
+            return player.UnEquip(Item);
         }
     }
 
     public class InventoryCommand : ICommand {
+        public static string Syntax => "inventory";
+
+        public static string Description => "Lists all items in the players inventory";
+
         public static InventoryCommand Parse(string[] args, World world) {
             return new InventoryCommand();
         }
 
-        public bool Execute(World world) {
-            Print(world.Player);
+        public bool Execute(PlayerActor player) {
+            Print(player);
             return false;
         }
 
@@ -323,12 +368,16 @@ namespace TextAdv {
     }
 
     public class LookCommand : ICommand {
+        public static string Syntax => "look";
+
+        public static string Description => "Shows items, actors in the room and the rooms description.";
+
         public static LookCommand Parse(string[] args, World world) {
             return new LookCommand();
         }
 
-        public bool Execute(World world) {
-            Print(world.Player.Location);
+        public bool Execute(PlayerActor player) {
+            Print(player.Location);
             return false;
         }
 
@@ -336,26 +385,51 @@ namespace TextAdv {
             Program.Say($"You are here: {location.Name}");
             Program.Say(location.Description);
 
-            string items = "Items: " + string.Join(", ", location.GetItems());
+            string items = "Items: " + string.Join(", ", location.GetItems()
+                .GroupBy(x => x.Name)
+                .Select(x => x.Count() > 1 ? $"{x.Count()}x {x.Key}" : x.Key));
             Program.Say(items);
 
             string dirs = "Paths: " + string.Join(", ", location.GetDirections());
             Program.Say(dirs);
 
-            string actors = "Actors: " + string.Join(", ", location.GetActors().Where(act => (!(act is PlayerActor) && act.Location == location)));
+            string actors = "Actors: " + string.Join(", ", location.GetActors().Where(act => (!(act is PlayerActor))));
             Program.Say(actors);
         }
     }
 
     public class ClearCommand : ICommand {
+        public static string Syntax => "clear";
+
+        public static string Description => "Clears the terminal";
 
         public static ClearCommand Parse(string[] args, World world) {
             return new ClearCommand();
         }
 
-        public bool Execute(World world) {
+        public bool Execute(PlayerActor player) {
             Program.Clear();
             return false;
+        }
+    }
+
+    public class HelpCommand : ICommand {
+        public static string Syntax => "help [command]";
+
+        public static string Description => "Lists all commands and more information of a provided command";
+
+
+
+        public bool Execute(PlayerActor player) {
+            return false;
+        }
+
+        static void Help(string command) {
+            if (!string.IsNullOrWhiteSpace(command)) {
+                foreach (var (cmds, callback) in Command.commands) {
+
+                }
+            }
         }
     }
 }

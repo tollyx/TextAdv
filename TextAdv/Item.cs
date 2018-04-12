@@ -86,6 +86,8 @@ namespace TextAdv {
             /// <returns>Wether the item was added successfully or not.</returns>
             bool AddItem(IItem item);
 
+            bool AddItems(params IItem[] items);
+
             /// <summary>
             /// Removes an item from the inventory.
             /// </summary>
@@ -220,9 +222,7 @@ namespace TextAdv {
                 return false;
             }
 
-            public override string ToString() {
-                return Name;
-            }
+            public override string ToString() => Name;
 
             public void SetLocation(IInventory location) {
                 if (location == null) throw new ArgumentNullException("location");
@@ -261,6 +261,26 @@ namespace TextAdv {
             }
         }
 
+        public class TopHat : BaseItem, IEquippable {
+            public override string Name => "TopHat";
+
+            public override string Description => "A black, fancy tophat.";
+
+            public override int Value => 10;
+
+            public EquipSlot Slot => EquipSlot.Head;
+
+            public bool OnEquip(IActor wearer) {
+                Console.WriteLine("You put on your fancy hat. You're so fancy.");
+                return true;
+            }
+
+            public bool OnUnEquip(IActor wearer) {
+                Console.WriteLine("You took off the top hat. You're not as fancy anymore.");
+                return true;
+            }
+        }
+
         public static class Extensions {
             /// <summary>
             /// Finds an item in an inventory. If there are multiple matches, it asks the user to specify which one.
@@ -269,7 +289,8 @@ namespace TextAdv {
             /// <param name="name">The name of the item. Doesn't have to be exact, but it is expected to be all-lowercase</param>
             /// <returns>An item or null if none was found.</returns>
             public static IItem FindItem(this IInventory inv, string name) {
-                var items = inv.FindItems(name);
+                if (inv == null) throw new ArgumentNullException("inv");
+                var items = inv.FindItems(name).ToList();
                 if (items.Count > 0) {
                     if (items.Count == 1) {
                         return items.First();
@@ -280,23 +301,27 @@ namespace TextAdv {
                             return items.First();
                         }
 
-                        string str = "Please specify: ";
-                        for (int i = 0; i < items.Count; i++) {
-                            str += $"{i + 1}: {items[i]}";
-                            if (i < items.Count-1) {
-                                str += ", ";
-                            }
-                        }
-                        int sel = Program.AskInt(str)-1;
-                        if (sel >= 0 && sel < items.Count) {
-                            return items[sel];
-                        }
-                        else {
-                            return null;
-                        }
+                        return PromptSpecify(items);
                     }
                 }
                 return null;
+            }
+
+            static T PromptSpecify<T>(IList<T> list) {
+                string str = "Please specify: ";
+                for (int i = 0; i < list.Count; i++) {
+                    str += $"{i + 1}: {list[i]}";
+                    if (i < list.Count - 1) {
+                        str += ", ";
+                    }
+                }
+                int sel = Program.AskInt(str) - 1;
+                if (sel >= 0 && sel < list.Count) {
+                    return list[sel];
+                }
+                else {
+                    return default(T);
+                }
             }
 
             /// <summary>
@@ -305,8 +330,9 @@ namespace TextAdv {
             /// <param name="inv">The inventory to search</param>
             /// <param name="name">The name of the wanted item.</param>
             /// <returns>A list of items or null if none was found.</returns>
-            public static IList<IItem> FindItems(this IInventory inv, string name) {
-                return inv.GetItems().Where((item) => item.Name.ToLower().Contains(name)).ToList();
+            public static IEnumerable<IItem> FindItems(this IInventory inv, string name) {
+                if (inv == null) throw new ArgumentNullException("inv");
+                return inv.GetItems().Where((item) => item.Name.ToLower().Contains(name));
             }
         }
     }

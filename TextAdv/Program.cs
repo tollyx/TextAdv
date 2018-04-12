@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,7 +32,7 @@ namespace TextAdv {
                 // The execute method tells us if we should update the world or not,
                 // since we don't want to update the world if the command was invalid
                 // or it was just inspecting something.
-                if (PromptCommand(world).Execute(world)) {
+                if (PromptCommand(world).Execute(world.Player)) {
                     world.Tick();
                 }
                 Spacer();
@@ -48,7 +49,12 @@ namespace TextAdv {
         }
 
         static public void Error(string what, string why) {
-            Say($"Error: {what}: {why}");
+            Say($"ERROR: {what}: {why}");
+        }
+
+        [Conditional("DEBUG")]
+        static public void Debug(string what, string why) {
+            Say($"DEBUG: {what}: {why}");
         }
 
         static public void Spacer() {

@@ -24,6 +24,7 @@ namespace TextAdv {
             Nodes[1].SetNeighbour(Direction.West, Nodes[2], true);
             Nodes[1].SetNeighbour(Direction.East, Nodes[3], true);
             Nodes[2].AddItem(new Items.Potion());
+            Nodes[1].AddItem(new Items.TopHat());
             Player = new PlayerActor(playername);
             
             Actors = new List<IActor>();
@@ -36,6 +37,14 @@ namespace TextAdv {
                 Actors.Add(actor);
             }
             actor.SetLocation(location);
+        }
+
+        public bool RemoveActor(IActor actor) {
+            if (Actors.Remove(actor)) {
+                actor.Erase();
+                return true;
+            }
+            return false;
         }
 
         public void Tick() {
