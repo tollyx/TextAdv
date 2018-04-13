@@ -307,20 +307,21 @@ namespace TextAdv {
                 return null;
             }
 
-            static T PromptSpecify<T>(IList<T> list) {
+            static T PromptSpecify<T>(IEnumerable<T> objects) where T: class {
                 string str = "Please specify: ";
+                var list = objects.GroupBy(x => x.ToString()).ToList();
                 for (int i = 0; i < list.Count; i++) {
-                    str += $"{i + 1}: {list[i]}";
+                    str += $"{i + 1}: {list[i].Key}";
                     if (i < list.Count - 1) {
                         str += ", ";
                     }
                 }
                 int sel = Program.AskInt(str) - 1;
                 if (sel >= 0 && sel < list.Count) {
-                    return list[sel];
+                    return list[sel].First();
                 }
                 else {
-                    return default(T);
+                    return null;
                 }
             }
 
