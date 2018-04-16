@@ -2,6 +2,8 @@
 
 (Temporary name, I promise.)
 
+![Screenshot](https://i.imgur.com/gRSHWHt.png)
+
 A text adventure game/engine written in C#, using .NET (not core, yet).
 
 It runs in your terminal.

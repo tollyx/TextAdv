@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using TextAdv.Items;
 
 namespace TextAdv {
-    public class PlayerActor : BaseActor, IEquipper {
+    public class PlayerActor : BaseActor {
 
         public PlayerActor(string name) : base() {
             Name = name;

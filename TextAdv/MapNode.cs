@@ -10,6 +10,8 @@ namespace TextAdv {
         public string Name { private set; get; }
         public string Description { private set; get; }
 
+        public IReadOnlyCollection<IItem> Inventory => _inventory;
+
         Dictionary<Direction, MapNode> neighbours = new Dictionary<Direction, MapNode>();
         List<IItem> _inventory;
         private List<IActor> _actors;
@@ -67,10 +69,6 @@ namespace TextAdv {
 
         public bool RemoveActor(IActor actor) {
             return _actors.Remove(actor);
-        }
-
-        public IList<IItem> GetItems() {
-            return _inventory.ToList();
         }
 
         public bool AddItem(IItem item) {

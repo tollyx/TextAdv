@@ -177,7 +177,7 @@ namespace TextAdv {
         public static string Description => "Takes all items in the room and puts them in the players inventory";
 
         public bool Execute(PlayerActor player) {
-            var list = player.Location.GetItems();
+            var list = player.Location.Inventory;
             if (list.Count == 0) {
                 Program.Say("There are no items to pick up here.");
                 return false;
@@ -374,7 +374,7 @@ namespace TextAdv {
             Program.Say($"You are here: {location.Name}");
             Program.Say(location.Description);
 
-            string items = "Items: " + string.Join(", ", location.GetItems()
+            string items = "Items: " + string.Join(", ", location.Inventory
                 .GroupBy(x => x.Name)
                 .Select(x => x.Count() > 1 ? $"{x.Count()}x {x.Key}" : x.Key));
             Program.Say(items);

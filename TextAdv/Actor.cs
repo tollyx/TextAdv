@@ -5,16 +5,68 @@ using TextAdv.Items;
 
 namespace TextAdv {
     public interface IActor : IInventory {
+        /// <summary>
+        /// The name of the actor
+        /// </summary>
         string Name { get; }
+
+        /// <summary>
+        /// The actor's location
+        /// </summary>
         MapNode Location { get; }
+
+        /// <summary>
+        /// The equipment the actor is currently wearing
+        /// </summary>
         IReadOnlyDictionary<EquipSlot, IItem> Equipment { get; }
+
+        /// <summary>
+        /// Update the actor by one tick
+        /// </summary>
         void Tick();
+
+        /// <summary>
+        /// Event that gets called each time the actor moves
+        /// </summary>
         event ActorMovedEvent ActorMoved;
+
+        /// <summary>
+        /// Equip an item
+        /// </summary>
+        /// <param name="item">The item to equip</param>
+        /// <returns>Wether the item was successfully equipped or not</returns>
         bool Equip(IItem item);
+
+        /// <summary>
+        /// Unequip the item in the specified equipment slot
+        /// </summary>
+        /// <param name="slot">The slot to unequip</param>
+        /// <returns>Wether the item was successfully unequipped or not</returns>
         bool UnEquip(EquipSlot slot);
+
+        /// <summary>
+        /// Unequip an item
+        /// </summary>
+        /// <param name="item">The item to unequip</param>
+        /// <returns>Wether the item was successfully unequipped or not</returns>
         bool UnEquip(IItem item);
+
+        /// <summary>
+        /// Move in a direction
+        /// </summary>
+        /// <param name="dir">The direction to move</param>
+        /// <returns>Wether we moved successfully or not</returns>
         bool Move(Direction dir);
+
+        /// <summary>
+        /// Set the actor's location
+        /// </summary>
+        /// <param name="node">The new location</param>
         void SetLocation(MapNode node);
+
+        /// <summary>
+        /// Erase this actor from the world
+        /// </summary>
         void Erase();
     }
 

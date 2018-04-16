@@ -40,21 +40,21 @@ namespace TextAdv {
             /// Gets called when the item is used.
             /// </summary>
             /// <param name="user">The Actor which is using the item</param>
-            /// <returns>Wether the use attempt was successful or not. (returns false to cancel the use and not pass time)</returns>
+            /// <returns>Wether the action was successful or not. (returns false to cancel)</returns>
             bool OnUse(IActor user);
 
             /// <summary>
             /// Gets called when the item is picked up.
             /// </summary>
             /// <param name="picker">The Actor which is picking the item up.</param>
-            /// <returns>If the pickup  attempt was successful or not. (returns false to cancel the pickup)</returns>
+            /// <returns>Wether the action was successful or not. (returns false to cancel)</returns>
             bool OnPickUp(IActor picker);
 
             /// <summary>
             /// Drops the item.
             /// </summary>
             /// <param name="dropper">The actor which is doing the dropping.</param>
-            /// <returns>Wether the drop attempt was successful or not. (returns false to cancel the drop)</returns>
+            /// <returns>Wether the action was successful or not. (returns false to cancel)</returns>
             bool OnDrop(IActor dropper);
 
             /// <summary>
@@ -62,7 +62,7 @@ namespace TextAdv {
             /// </summary>
             /// <param name="thrower">The Actor that is throwing the item</param>
             /// <param name="target">The Actor which is the target of the throw</param>
-            /// <returns>Wether the item was successfully thrown, not necessarily hitting the target. (return false to cancel the throw)</returns>
+            /// <returns>Wether the action was successful or not. (returns false to cancel)</returns>
             bool OnThrow(IActor thrower, IActor target);
 
             /// <summary>
@@ -70,14 +70,14 @@ namespace TextAdv {
             /// </summary>
             /// <param name="giver">The Actor who is giving the item</param>
             /// <param name="reciever">The who is recieving the item</param>
-            /// <returns>Wether the give attempt was successful or not. (returns false to cancel the give)</returns>
+            /// <returns>Wether the action was successful or not. (returns false to cancel)</returns>
             bool OnGive(IActor giver, IActor reciever);
 
             /// <summary>
             /// Gets called when the item is consumed. The item decides itself if it is removed or not after consumption.
             /// </summary>
             /// <param name="consumer">The Actor that is attempting to consume the item</param>
-            /// <returns>Wether the action was successful or not. (return false to cancel the consume)</returns>
+            /// <returns>Wether the action was successful or not. (returns false to cancel)</returns>
             bool OnConsume(IActor consumer);
 
             /// <summary>
@@ -89,14 +89,14 @@ namespace TextAdv {
             /// Gets called when the Actor attempts to equip the item.
             /// </summary>
             /// <param name="wearer">The actor which is attempting to equip the item.</param>
-            /// <returns>Wether the attempt was successful or not. (return false to cancel the equip)</returns>
+            /// <returns>Wether the action was successful or not. (returns false to cancel)</returns>
             bool OnEquip(IActor wearer);
 
             /// <summary>
             /// Gets called when the Actor attempts to unequip the item.
             /// </summary>
             /// <param name="wearer">The actor which is attempting to unequip the item.</param>
-            /// <returns>Wether the attempt was successful or not. (return false to cancel the unequip)</returns>
+            /// <returns>Wether the action was successful or not. (returns false to cancel)</returns>
             bool OnUnEquip(IActor wearer);
         }
 
@@ -222,14 +222,28 @@ namespace TextAdv {
         }
 
         public class Potion : BaseItem {
-            public override string Name => "Potion";
+            static readonly string[] colors = {
+                "Blue", "Red", "Pink", "Purple", "Green", "Brown",
+            };
 
-            public override string Description => "A flask filled with a blue mysterious liquid.";
+            string color;
+
+            public Potion() {
+                color = colors[World.Singleton.Rng.Next(colors.Length)];
+            }
+
+            public Potion(string color) {
+                this.color = color;
+            }
+
+            public override string Name => $"{color} Potion";
+
+            public override string Description => $"A flask filled with a {color.ToLower()} mysterious liquid.";
 
             public override int Value => 10;
 
             public override bool OnConsume(IActor consumer) {
-                Program.Say("You drank the potion. It's bitter, but it didn't seem to have any effect.");
+                Program.Say($"You drank the {color.ToLower()} potion. It's bitter, but it didn't seem to have any effect.");
                 Erase();
                 return true;
             }
