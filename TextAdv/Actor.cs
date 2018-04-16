@@ -7,29 +7,36 @@ namespace TextAdv {
     public interface IActor : IInventory {
         string Name { get; }
         MapNode Location { get; }
+        IReadOnlyDictionary<EquipSlot, IItem> Equipment { get; }
         void Tick();
         event ActorMovedEvent ActorMoved;
+        bool Equip(IItem item);
+        bool UnEquip(EquipSlot slot);
+        bool UnEquip(IItem item);
         bool Move(Direction dir);
         void SetLocation(MapNode node);
         void Erase();
     }
 
-    public abstract class BaseActor : IActor, IEquipper {
+    public abstract class BaseActor : IActor {
         public event ActorMovedEvent ActorMoved;
 
         public MapNode Location { get; protected set; }
 
         public string Name { get; protected set; }
 
+        public IReadOnlyCollection<IItem> Inventory => _inventory;
+
+        public IReadOnlyDictionary<EquipSlot, IItem> Equipment => _equipment;
+
         List<IItem> _inventory;
 
-        Dictionary<EquipSlot, IEquippable> _equipment;
+        Dictionary<EquipSlot, IItem> _equipment;
 
-        public IDictionary<EquipSlot, IEquippable> Equipment => _equipment;
 
         public BaseActor() {
             _inventory = new List<IItem>();
-            _equipment = new Dictionary<EquipSlot, IEquippable>();
+            _equipment = new Dictionary<EquipSlot, IItem>();
             Location = null;
         }
 
@@ -60,17 +67,18 @@ namespace TextAdv {
 
         public override string ToString() => Name;
 
-        public bool Equip(IEquippable item) {
+        public bool Equip(IItem item) {
             if (item == null) throw new ArgumentNullException("item");
-            if (_equipment.ContainsKey(item.Slot) || !item.OnEquip(this)) {
+            if (_equipment.ContainsKey(item.Slot)) {
+                Program.Say($"The {_equipment[item.Slot].Name} is in the way!");
                 return false;
             }
-            else {
-                Program.Say($"You equipped the {item.Name}");
+            if (item.OnEquip(this)) {
                 _equipment.Add(item.Slot, item);
                 _inventory.Remove(item);
                 return true;
             }
+            return false;
         }
 
         public bool UnEquip(EquipSlot slot) {
@@ -83,7 +91,7 @@ namespace TextAdv {
             return false;
         }
 
-        public bool UnEquip(IEquippable item) {
+        public bool UnEquip(IItem item) {
             if (_equipment.ContainsValue(item) && item.OnUnEquip(this)) {
                 _equipment.Remove(item.Slot);
                 _inventory.Add(item);
@@ -103,14 +111,6 @@ namespace TextAdv {
 
         public bool RemoveItem(IItem item) {
             return _inventory.Remove(item);
-        }
-
-        public IList<IItem> GetItems() {
-            return _inventory.ToList();
-        }
-
-        public IList<IEquippable> GetEquippedItems() {
-            return _equipment.Values.ToList();
         }
 
         public bool AddItems(params IItem[] items) {

@@ -37,7 +37,8 @@ namespace TextAdv {
             (new[]{ "eat", "dri", "drink", "consume" }, ConsumeCommand.Parse),
             (new[]{ "wear", "we", "eq", "equip" }, EquipCommand.Parse),
             (new[]{ "re", "remove", "uneq", "unequip" }, UnequipCommand.Parse),
-            //(new[]{ "op", "open", "cl", "close" }, OpenCommand.Parse),
+            //(new[]{ "op", "open" }, OpenCommand.Parse),
+            //(new[]{ "cl", "close" }, CloseCommand.Parse),
             (new[]{ "look", "l", "here", "ls" }, LookCommand.Parse),
             (new[]{ "clear" }, ClearCommand.Parse),
         };
@@ -241,13 +242,13 @@ namespace TextAdv {
     }
 
     public class ConsumeCommand : ICommand {
-        public IConsumable Item { get; private set; }
+        public IItem Item { get; private set; }
 
         public static string Syntax => "consume <item>";
 
         public static string Description => "Consumes an item that is in the players inventory";
 
-        public ConsumeCommand(IConsumable item) {
+        public ConsumeCommand(IItem item) {
             Item = item;
         }
 
@@ -264,13 +265,7 @@ namespace TextAdv {
                 return null;
             }
 
-            if (item is IConsumable) {
-                return new ConsumeCommand(item as IConsumable);
-            }
-            else {
-                Program.Say($"You can't eat the {item.Name}.");
-                return null;
-            }
+            return new ConsumeCommand(item);
         }
 
         public bool Execute(PlayerActor player) {
@@ -282,13 +277,13 @@ namespace TextAdv {
     }
 
     public class EquipCommand : ICommand {
-        public IEquippable Item { get; private set; }
+        public IItem Item { get; private set; }
 
         public static string Syntax => "wear <item>";
 
         public static string Description => "Wears an item from the players inventory.";
 
-        public EquipCommand(IEquippable item) {
+        public EquipCommand(IItem item) {
             Item = item;
         }
 
@@ -305,13 +300,7 @@ namespace TextAdv {
                 return null;
             }
 
-            if (item is IEquippable) {
-                return new EquipCommand(item as IEquippable);
-            }
-            else {
-               Program.Say($"You can't equip the {item.Name}.");
-               return null;
-            }
+            return new EquipCommand(item);
         }
 
         public bool Execute(PlayerActor player) {
@@ -320,13 +309,13 @@ namespace TextAdv {
     }
 
     public class UnequipCommand : ICommand {
-        public IEquippable Item { get; private set; }
+        public IItem Item { get; private set; }
 
         public static string Syntax => "remove <item>";
 
         public static string Description => "Unequips an item and puts it in the players inventory";
 
-        public UnequipCommand(IEquippable item) {
+        public UnequipCommand(IItem item) {
             Item = item;
         }
 
@@ -361,7 +350,7 @@ namespace TextAdv {
 
         public static void Print(IActor act) {
             Program.Say("Inventory:");
-            foreach (var item in act.GetItems()) {
+            foreach (var item in act.Inventory) {
                 Program.Say(item.Name);
             }
         }

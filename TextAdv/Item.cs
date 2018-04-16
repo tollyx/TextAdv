@@ -73,64 +73,13 @@ namespace TextAdv {
             /// <returns>Wether the give attempt was successful or not. (returns false to cancel the give)</returns>
             bool OnGive(IActor giver, IActor reciever);
 
-        }
-
-        /// <summary>
-        /// An object with an inventory. Actors, Map nodes, Chests etc.
-        /// </summary>
-        public interface IInventory {
-            /// <summary>
-            /// Adds an item to the inventory.
-            /// </summary>
-            /// <param name="item">The item to add</param>
-            /// <returns>Wether the item was added successfully or not.</returns>
-            bool AddItem(IItem item);
-
-            bool AddItems(params IItem[] items);
-
-            /// <summary>
-            /// Removes an item from the inventory.
-            /// </summary>
-            /// <param name="item">The item to remove</param>
-            /// <returns>Wether the item was removed successfully or not.</returns>
-            bool RemoveItem(IItem item);
-
-            /// <summary>
-            /// Gets a copy of the inventory list.
-            /// </summary>
-            /// <returns>A copy of the list of items in the inventory.</returns>
-            IList<IItem> GetItems();
-        }
-
-        /// <summary>
-        /// An item that can be consumed.
-        /// </summary>
-        public interface IConsumable : IItem {
             /// <summary>
             /// Gets called when the item is consumed. The item decides itself if it is removed or not after consumption.
             /// </summary>
             /// <param name="consumer">The Actor that is attempting to consume the item</param>
-            /// <returns>Wether the action was successful or not. (return false to not pass time)</returns>
+            /// <returns>Wether the action was successful or not. (return false to cancel the consume)</returns>
             bool OnConsume(IActor consumer);
-        }
 
-        public enum EquipSlot {
-            Head,
-            Neck,
-            Torso,
-            Hands,
-            Legs,
-            Feet,
-            Weapon,
-            Finger,
-            Wrists,
-            Ankles,
-        }
-
-        /// <summary>
-        /// An item that can equipped
-        /// </summary>
-        public interface IEquippable : IItem {
             /// <summary>
             /// The equip slot the item occupies.
             /// </summary>
@@ -152,31 +101,39 @@ namespace TextAdv {
         }
 
         /// <summary>
-        /// Something (presumably an actor) that can equip items.
+        /// An object with an inventory. Actors, Map nodes, Chests etc.
         /// </summary>
-        public interface IEquipper {
+        public interface IInventory {
+            IReadOnlyCollection<IItem> Inventory { get; }
             /// <summary>
-            /// Equip the provided item
+            /// Adds an item to the inventory.
             /// </summary>
-            /// <param name="item">The item to equip.</param>
-            /// <returns>Wether the item was successfully equipped or not</returns>
-            bool Equip(IEquippable item);
+            /// <param name="item">The item to add</param>
+            /// <returns>Wether the item was added successfully or not.</returns>
+            bool AddItem(IItem item);
+
+            bool AddItems(params IItem[] items);
 
             /// <summary>
-            /// UeEquip the item that occupies the provided slot
+            /// Removes an item from the inventory.
             /// </summary>
-            /// <param name="slot">The item slot to unequip.</param>
-            /// <returns>Wether the item was successfully unequipped or not</returns>
-            bool UnEquip(EquipSlot slot);
+            /// <param name="item">The item to remove</param>
+            /// <returns>Wether the item was removed successfully or not.</returns>
+            bool RemoveItem(IItem item);
+        }
 
-            /// <summary>
-            /// UeEquip the provided item
-            /// </summary>
-            /// <param name="item">The item to unequip.</param>
-            /// <returns>Wether the item was successfully unequipped or not</returns>
-            bool UnEquip(IEquippable item);
-
-            IList<IEquippable> GetEquippedItems();
+        public enum EquipSlot {
+            None,
+            Head,
+            Neck,
+            Torso,
+            Hands,
+            Legs,
+            Feet,
+            Weapon,
+            Finger,
+            Wrists,
+            Ankles,
         }
 
         /// <summary>
@@ -190,6 +147,8 @@ namespace TextAdv {
             public abstract int Value { get; }
 
             public IInventory Location => _location;
+
+            public virtual EquipSlot Slot => EquipSlot.None;
 
             IInventory _location;
 
@@ -233,9 +192,24 @@ namespace TextAdv {
                 }
             }
 
-            protected void Erase() {
+            public void Erase() {
                 _location?.RemoveItem(this);
                 _location = null;
+            }
+
+            public virtual bool OnConsume(IActor consumer) {
+                Program.Say($"You cannot eat a {Name}!");
+                return false;
+            }
+
+            public virtual bool OnEquip(IActor wearer) {
+                Program.Say($"You cannot wear a {Name}!");
+                return false;
+            }
+
+            public virtual bool OnUnEquip(IActor wearer) {
+                Program.Say($"How did you wear a {Name} in the first place?");
+                return true;
             }
         }
 
@@ -247,35 +221,35 @@ namespace TextAdv {
             public override int Value => 0;
         }
 
-        public class Potion : BaseItem, IConsumable {
+        public class Potion : BaseItem {
             public override string Name => "Potion";
 
             public override string Description => "A flask filled with a blue mysterious liquid.";
 
             public override int Value => 10;
 
-            public bool OnConsume(IActor consumer) {
+            public override bool OnConsume(IActor consumer) {
                 Program.Say("You drank the potion. It's bitter, but it didn't seem to have any effect.");
                 Erase();
                 return true;
             }
         }
 
-        public class TopHat : BaseItem, IEquippable {
+        public class TopHat : BaseItem {
             public override string Name => "TopHat";
 
             public override string Description => "A black, fancy tophat.";
 
             public override int Value => 10;
 
-            public EquipSlot Slot => EquipSlot.Head;
+            public override EquipSlot Slot => EquipSlot.Head;
 
-            public bool OnEquip(IActor wearer) {
+            public override bool OnEquip(IActor wearer) {
                 Console.WriteLine("You put on your fancy hat. You're so fancy.");
                 return true;
             }
 
-            public bool OnUnEquip(IActor wearer) {
+            public override bool OnUnEquip(IActor wearer) {
                 Console.WriteLine("You took off the top hat. You're not as fancy anymore.");
                 return true;
             }
@@ -333,7 +307,7 @@ namespace TextAdv {
             /// <returns>A list of items or null if none was found.</returns>
             public static IEnumerable<IItem> FindItems(this IInventory inv, string name) {
                 if (inv == null) throw new ArgumentNullException("inv");
-                return inv.GetItems().Where((item) => item.Name.ToLower().Contains(name));
+                return inv.Inventory.Where((item) => item.Name.ToLower().Contains(name));
             }
         }
     }
