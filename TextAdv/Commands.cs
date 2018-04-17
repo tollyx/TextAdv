@@ -177,19 +177,17 @@ namespace TextAdv {
         public static string Description => "Takes all items in the room and puts them in the players inventory";
 
         public bool Execute(PlayerActor player) {
-            var list = player.Location.Inventory;
-            if (list.Count == 0) {
+            var inv = player.Location.Inventory;
+            if (inv.Count == 0) {
                 Program.Say("There are no items to pick up here.");
                 return false;
             }
-
+            var list = inv.ToList();
             bool shouldPassTime = false;
             foreach (var item in list) {
                 if (item.OnPickUp(player)) {
-                    shouldPassTime = true;
-                    item.SetLocation(player);
+                    
                 }
-                
             }
             return shouldPassTime;
         }

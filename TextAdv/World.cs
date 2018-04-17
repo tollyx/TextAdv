@@ -34,10 +34,9 @@ namespace TextAdv {
             Nodes[0].SetNeighbour(Direction.In, Nodes[1], true);
             Nodes[0].AddItem(new Items.Stone());
             Nodes[0].AddItem(new Items.Stone());
-            Nodes[0].AddItem(new Items.Stone());
             Nodes[1].SetNeighbour(Direction.West, Nodes[2], true);
             Nodes[1].SetNeighbour(Direction.East, Nodes[3], true);
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 5; i++) {
                 Nodes[2].AddItem(new Items.Potion());
             }
             Nodes[1].AddItem(new Items.TopHat());

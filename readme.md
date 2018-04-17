@@ -23,7 +23,8 @@ Non-complete list of ideas and things to do
 * [ ] Core
 	* [x] Movement
 	* [x] Command parsing
-		* [ ] Figure out an easier way to add sub-commands (eg. take all)
+		* [ ] Figure out an easier way to add sub-commands 
+		(eg. take all, drop all)
 	* [ ] Audio
 		* `Console.Beep()` Or maybe something else?
 * [ ] Commands
@@ -38,7 +39,7 @@ Non-complete list of ideas and things to do
 	* [x] Look
 	* [x] Equip
 	* [x] Clear
-	* [ ] Unequip
+	* [x] Unequip
 	* [ ] Examine/Inspect
 	* [ ] Use
 	* [ ] Insert
@@ -53,6 +54,8 @@ Non-complete list of ideas and things to do
 			* [KISS](https://en.wikipedia.org/wiki/KISS_principle)
 			* Probably some menu-based system, no user-written responses.
 	* [ ] Equipment
+		* [x] Equipping & Unequipping items
+		* [ ] Equipment effects (stats, other fun stuff)
 	* Other, static interractable entities
 		* [ ] Containers
 		* [ ] Buttons & Levers
@@ -65,6 +68,8 @@ Non-complete list of ideas and things to do
 		* Data-driven?
 		* Generic base class and polymorphism?
 	* [ ] Consumables
+		* [x] Drinking & Eating
+		* [ ] Effects
 * [ ] Map
 	* [x] Base node class
 	* [ ] Better way to build a map
